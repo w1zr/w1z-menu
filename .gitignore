@@ -1,0 +1,14 @@
+# Build outputs (build.bat)
+build/
+
+# Release zips (package.bat); published as GitHub release assets instead
+release/
+package/*.zip
+
+# Copied into package/fluffy by package.bat
+package/fluffy/winmm.dll
+package/fluffy/w1zsMenu.ini
+
+# Research helper's Python libraries (tools/ndre.py)
+tools/.pylib/
+__pycache__/
