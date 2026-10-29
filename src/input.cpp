@@ -36,7 +36,19 @@ using ClipCursorFn = BOOL(WINAPI*)(const RECT*);
 using SetCursorPosFn = BOOL(WINAPI*)(int, int);
 using XInputGetStateFn = DWORD(WINAPI*)(DWORD, XINPUT_STATE*);
 
+using GetKeyboardStateFn = BOOL(WINAPI*)(PBYTE);
+using GetKeyStateFn = SHORT(WINAPI*)(int);
+using PeekMessageFn = BOOL(WINAPI*)(LPMSG, HWND, UINT, UINT, UINT);
+using GetMessageFn = BOOL(WINAPI*)(LPMSG, HWND, UINT, UINT);
+
 GetRawInputDataFn oGetRawInputData = nullptr;
+GetKeyboardStateFn oGetKeyboardState = nullptr;
+GetKeyStateFn oGetKeyState = nullptr;
+GetKeyStateFn oGetAsyncKeyState = nullptr;
+PeekMessageFn oPeekMessageW = nullptr;
+PeekMessageFn oPeekMessageA = nullptr;
+GetMessageFn oGetMessageW = nullptr;
+GetMessageFn oGetMessageA = nullptr;
 ClipCursorFn oClipCursor = nullptr;
 SetCursorPosFn oSetCursorPos = nullptr;
 XInputGetStateFn oXInputGetState = nullptr;   // XInputGetState (ordinal 2)
@@ -65,7 +77,7 @@ void HandleKeyboard(RAWKEYBOARD& kb) {
     if (down) {
         BYTE state[256] = {};
         if (g_keyDown[VK_SHIFT]) state[VK_SHIFT] = 0x80;
-        if (GetKeyState(VK_CAPITAL) & 1) state[VK_CAPITAL] = 0x01;
+        if ((oGetKeyState ? oGetKeyState : GetKeyState)(VK_CAPITAL) & 1) state[VK_CAPITAL] = 0x01;
         wchar_t buf[4];
         // Flag 4: do not change the keyboard state (Windows 10 1607+).
         const int n = ToUnicodeEx(vk, kb.MakeCode, state, buf, 4, 4, GetKeyboardLayout(0));
@@ -103,6 +115,64 @@ UINT WINAPI HkGetRawInputData(HRAWINPUT h, UINT cmd, LPVOID data, PUINT size, UI
         if (ri->header.dwType == RIM_TYPEKEYBOARD) HandleKeyboard(ri->data.keyboard);
         else if (ri->header.dwType == RIM_TYPEMOUSE) HandleMouse(ri->data.mouse);
     }
+    return r;
+}
+
+// The game also reads keys outside raw input (the arrow keys reach its weapon
+// cross that way). While the menu is open, every other way of reading the
+// keyboard and mouse reports "nothing pressed"; releases still get through.
+BOOL WINAPI HkGetKeyboardState(PBYTE keys) {
+    const BOOL r = oGetKeyboardState(keys);
+    if (r && keys && g_open)
+        for (int i = 0; i < 256; ++i) keys[i] &= 0x01; // keep toggle state (Caps Lock), clear "down"
+    return r;
+}
+
+SHORT WINAPI HkGetKeyState(int vk) {
+    const SHORT r = oGetKeyState(vk);
+    return g_open ? static_cast<SHORT>(r & 0x0001) : r;
+}
+
+SHORT WINAPI HkGetAsyncKeyState(int vk) { return g_open ? 0 : oGetAsyncKeyState(vk); }
+
+// Key-down, character and mouse-button messages for the game become WM_NULL.
+void FilterMessage(LPMSG m) {
+    if (!g_open || !m) return;
+    switch (m->message) {
+    case WM_KEYDOWN: case WM_CHAR: case WM_DEADCHAR: case WM_SYSCHAR:
+    case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK: case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
+    case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK: case WM_XBUTTONDOWN: case WM_MOUSEWHEEL: case WM_MOUSEHWHEEL:
+        m->message = WM_NULL;
+        break;
+    case WM_SYSKEYDOWN:
+        if (m->wParam != VK_F4) m->message = WM_NULL; // keep Alt+F4
+        break;
+    default:
+        break;
+    }
+}
+
+BOOL WINAPI HkPeekMessageW(LPMSG m, HWND h, UINT lo, UINT hi, UINT remove) {
+    const BOOL r = oPeekMessageW(m, h, lo, hi, remove);
+    if (r) FilterMessage(m);
+    return r;
+}
+
+BOOL WINAPI HkPeekMessageA(LPMSG m, HWND h, UINT lo, UINT hi, UINT remove) {
+    const BOOL r = oPeekMessageA(m, h, lo, hi, remove);
+    if (r) FilterMessage(m);
+    return r;
+}
+
+BOOL WINAPI HkGetMessageW(LPMSG m, HWND h, UINT lo, UINT hi) {
+    const BOOL r = oGetMessageW(m, h, lo, hi);
+    if (r > 0) FilterMessage(m);
+    return r;
+}
+
+BOOL WINAPI HkGetMessageA(LPMSG m, HWND h, UINT lo, UINT hi) {
+    const BOOL r = oGetMessageA(m, h, lo, hi);
+    if (r > 0) FilterMessage(m);
     return r;
 }
 
@@ -199,6 +269,20 @@ bool Install() {
     HMODULE user32 = GetModuleHandleW(L"user32.dll");
     bool ok = Hook(reinterpret_cast<void*>(GetProcAddress(user32, "GetRawInputData")),
                    reinterpret_cast<void*>(&HkGetRawInputData), reinterpret_cast<void**>(&oGetRawInputData), "GetRawInputData");
+    const struct {
+        const char* name;
+        void* detour;
+        void** original;
+    } more[] = {
+        {"GetKeyboardState", reinterpret_cast<void*>(&HkGetKeyboardState), reinterpret_cast<void**>(&oGetKeyboardState)},
+        {"GetKeyState", reinterpret_cast<void*>(&HkGetKeyState), reinterpret_cast<void**>(&oGetKeyState)},
+        {"GetAsyncKeyState", reinterpret_cast<void*>(&HkGetAsyncKeyState), reinterpret_cast<void**>(&oGetAsyncKeyState)},
+        {"PeekMessageW", reinterpret_cast<void*>(&HkPeekMessageW), reinterpret_cast<void**>(&oPeekMessageW)},
+        {"PeekMessageA", reinterpret_cast<void*>(&HkPeekMessageA), reinterpret_cast<void**>(&oPeekMessageA)},
+        {"GetMessageW", reinterpret_cast<void*>(&HkGetMessageW), reinterpret_cast<void**>(&oGetMessageW)},
+        {"GetMessageA", reinterpret_cast<void*>(&HkGetMessageA), reinterpret_cast<void**>(&oGetMessageA)},
+    };
+    for (const auto& h : more) Hook(reinterpret_cast<void*>(GetProcAddress(user32, h.name)), h.detour, h.original, h.name);
     Hook(reinterpret_cast<void*>(GetProcAddress(user32, "ClipCursor")), reinterpret_cast<void*>(&HkClipCursor),
          reinterpret_cast<void**>(&oClipCursor), "ClipCursor");
     Hook(reinterpret_cast<void*>(GetProcAddress(user32, "SetCursorPos")), reinterpret_cast<void*>(&HkSetCursorPos),
@@ -240,10 +324,24 @@ void AttachWindow(HWND window) {
 
 void FeedImGui(HWND window, float bbW, float bbH) {
     ImGuiIO& io = ImGui::GetIO();
+    // At most one key press per frame: the menu acts on presses once per
+    // frame, so Esc + Down + Enter arriving together would be handled out of
+    // order. Later events wait for the next frame.
     std::vector<Event> ev;
     {
         std::lock_guard<std::mutex> l(g_lock);
-        ev.swap(g_events);
+        size_t take = g_events.size();
+        bool press = false;
+        for (size_t i = 0; i < g_events.size(); ++i) {
+            if (g_events[i].type != Ev::Key || !g_events[i].down) continue;
+            if (press) {
+                take = i;
+                break;
+            }
+            press = true;
+        }
+        ev.assign(g_events.begin(), g_events.begin() + static_cast<std::ptrdiff_t>(take));
+        g_events.erase(g_events.begin(), g_events.begin() + static_cast<std::ptrdiff_t>(take));
     }
     for (const auto& e : ev) {
         switch (e.type) {

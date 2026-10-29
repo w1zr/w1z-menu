@@ -1,4 +1,5 @@
 #include "ammo.h"
+#include "character.h"
 #include "engine.h"
 #include "features.h"
 #include "game.h"
@@ -33,6 +34,9 @@ DWORD WINAPI Startup(LPVOID) {
     // (greyed out) while the signature scans run.
     ammo::Register();
     engine::Register();
+#if W1Z_CHARACTER_SWAP
+    character::Register();
+#endif
     pause::Init();
     menu::Init();
 
@@ -46,7 +50,12 @@ DWORD WINAPI Startup(LPVOID) {
     }
 
     ammo::Init();
-    if (mh) engine::Init(); // needs MinHook for the game-loop hook
+    if (mh) {
+        engine::Init(); // needs MinHook for the game-loop hook
+#if W1Z_CHARACTER_SWAP
+        character::Init();
+#endif
+    }
     else logx::Write("engine features stay off: MinHook is not available");
     hotkeys::Start(); // after ammo::Init: F7/F8 are only registered when the ammo features loaded
     int loaded, total;

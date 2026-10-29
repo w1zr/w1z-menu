@@ -137,3 +137,40 @@ inline const char* kGiveWeaponPrologue =
 inline const char* kWeaponLookupCall = "48 8B 5B 60 48 8B CB E8";
 
 } // namespace engine
+
+namespace engine {
+
+// Character swap. The developer menu's "Spawn Player" item toggles the player:
+// it despawns an existing player, or spawns one at the camera through the
+// player-spawn function, passing a character id (0 = the default, t1x-joel).
+// That function calls the core spawn every player spawn goes through
+// (checkpoints, deaths, chapter loads) with the character id as its fifth
+// argument; the menu swaps that id.
+inline const char* kSpawnPlayerLabel = "Spawn Player";
+// In the callback: mov r8,[rip+id]; lea rcx,[rsp+20h]; xor r9d,r9d; call spawn
+inline const char* kSpawnCall = "4C 8B 05 ?? ?? ?? ?? 48 8D 4C 24 20 45 33 C9 E8";
+// In the spawn function: movabs r14, <default character id>
+inline const char* kDefaultCharacter = "49 BE";
+// ... and: mov [rsp+40h], rdi; call core
+inline const char* kCoreCall = "48 89 7C 24 40 E8";
+inline const char* kCorePrologue = "40 55 53 56 57 41 54 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8";
+inline const char* kJoel = "t1x-joel";
+inline const char* kEllie = "t1x-ellie";
+
+// Start of the Give Each Craftable callback: sub rsp,28h; lea rcx,[rip+player
+// handle]; mov r9d,edx; call player lookup.
+inline const char* kPlayerLookupStart = "48 83 EC 28 48 8D 0D ?? ?? ?? ?? 44 8B CA E8";
+
+// GameRestartCheckpoint(bool, bool): the pause menu's Restart Checkpoint calls
+// it with (false, false). Found through its profiling name string.
+inline const char* kRestartName = "bool __cdecl GameRestartCheckpoint(bool,bool)";
+inline const char* kRestartPrologue = "48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8D 68 A1";
+
+// Outfit characters in the game's character data (spawn-character.bin).
+// Joel's chapter outfit N becomes Ellie's outfit N (or her closest earlier one).
+inline const int kEllieOutfits[] = {1, 2, 3, 4, 5, 6, 7, 8, 11, 13, 15};
+inline const int kEllieNoBackpack[] = {1, 2, 3, 8};
+inline const int kJoelOutfits[] = {1, 2, 3, 4, 5, 7, 14, 15, 16};
+inline const int kJoelNoBackpack[] = {2, 4, 14, 15, 16};
+
+} // namespace engine

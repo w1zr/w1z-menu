@@ -128,7 +128,32 @@ def screenshot():
     img.save(os.path.join(out, "screenshot.png"), optimize=True)
 
 
+def header():
+    """2600x744 Nexus page header: emblem, title and amber rule."""
+    W, H = 2600 * S // 2, 744 * S // 2  # drawn at 1x supersampling to keep memory sane
+    img = Image.new("RGB", (W, H), BG)
+    glow = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(glow).ellipse([int(W * 0.05), int(H * 0.0), int(W * 0.35), int(H * 1.0)], fill=45)
+    glow = glow.filter(ImageFilter.GaussianBlur(100))
+    img = Image.composite(Image.new("RGB", (W, H), (60, 40, 10)), img, glow)
+    d = ImageDraw.Draw(img)
+    size = int(H * 0.62)
+    e = emblem(size)
+    img.paste(e, (int(W * 0.12), (H - size) // 2), e)
+    tx = int(W * 0.12) + size + int(W * 0.06)
+    title = ImageFont.truetype(os.path.join(FONTS, "seguisb.ttf"), int(H * 0.2))
+    end = spaced(d, (tx, int(H * 0.26)), "W1Z'S MENU", title, TEXT, int(H * 0.035))
+    d.rectangle([tx, int(H * 0.56), end - int(H * 0.035), int(H * 0.56) + max(4, H // 120)], fill=AMBER)
+    sub = ImageFont.truetype(os.path.join(FONTS, "segoeui.ttf"), int(H * 0.06))
+    spaced(d, (tx, int(H * 0.62)), "IN-GAME MOD MENU  ·  THE LAST OF US PART I", sub, DIM, int(H * 0.012))
+    img = img.resize((2600, 744), Image.LANCZOS)
+    out = os.path.join(ROOT, "nexus", "images")
+    os.makedirs(out, exist_ok=True)
+    img.save(os.path.join(out, "00-header.png"), optimize=True)
+
+
 if __name__ == "__main__":
     logo()
     screenshot()
-    print("art/logo.png and package/fluffy/screenshot.png written")
+    header()
+    print("art/logo.png, package/fluffy/screenshot.png and nexus/images/00-header.png written")

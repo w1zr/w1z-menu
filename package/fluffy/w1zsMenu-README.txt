@@ -1,4 +1,4 @@
-w1z's menu v1.0.0 - in-game mod menu for The Last of Us Part I (PC)
+w1z's menu v1.1.0 - in-game mod menu for The Last of Us Part I (PC)
 ====================================================================
 
 Open / close:  Insert or F9  (controller: L3 + R3)
@@ -16,6 +16,8 @@ input.
 Pages
   Player          God Mode, No Hit Reactions, Infinite Sprint,
                   Undetectable Player, One Hit Kills
+  Character       Play as Ellie / Play as Joel in Winter, Swap Now
+                  (the character swap is experimental)
   Weapons/Items   Infinite Ammo, No Reload, infinity sign on the HUD,
                   Infinite Weapon Health, Disable Weapon Sway,
                   Disable Auto Reload, Disable Auto Holster, Drop All Weapons,

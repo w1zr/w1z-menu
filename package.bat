@@ -3,7 +3,7 @@ rem Builds release\w1zsMenu-v<version>.zip (Fluffy Mod Manager or manual install
 rem from build\winmm.dll, dist\w1zsMenu.ini and the files in package\fluffy.
 rem Run build.bat first.
 setlocal
-set VERSION=1.0.0
+set VERSION=1.1.0
 cd /d "%~dp0"
 if not exist build\winmm.dll (
   echo build\winmm.dll not found. Run build.bat first.

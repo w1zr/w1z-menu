@@ -36,6 +36,9 @@ GameLoopFn oGameLoop = nullptr;
 
 std::mutex g_queueLock;
 std::vector<std::function<void()>> g_queue;
+std::vector<std::function<void()>> g_tickHandlers;
+std::mutex g_tickLock; // handlers can be added while the game loop already runs
+std::atomic<bool> g_loopHooked{false};
 std::atomic<bool> g_loopRunning{false};
 
 void Enqueue(std::function<void()> fn) {
@@ -102,6 +105,11 @@ std::atomic<bool> g_hudReset{false};
 
 float* g_timeScale = nullptr;
 
+// The developer menu's player lookup: lookup(&handle) -> player or null.
+using PlayerLookup = void*(__fastcall*)(const void* handle);
+PlayerLookup g_playerLookup = nullptr;
+const void* g_playerHandle = nullptr;
+
 // ---------------------------------------------------------------- game loop
 
 void CheckWeapons() {
@@ -150,6 +158,13 @@ void Tick() {
         bool active = false;
         if (RunCallback(g_manualCamera, 0, 0, &active)) g_cameraFeature->on = active;
     }
+
+    std::vector<std::function<void()>> handlers;
+    {
+        std::lock_guard<std::mutex> l(g_tickLock);
+        handlers = g_tickHandlers;
+    }
+    for (auto& h : handlers) h();
 
     std::vector<std::function<void()>> work;
     {
@@ -390,6 +405,7 @@ void Init() {
         loopOk = MH_CreateHook(target, reinterpret_cast<void*>(&HkGameLoop), reinterpret_cast<void**>(&oGameLoop)) == MH_OK &&
                  MH_EnableHook(target) == MH_OK;
         logx::Write("engine: GameLoopUpdate at RVA 0x%zX %s", loop, loopOk ? "hooked" : "could NOT be hooked");
+        g_loopHooked = loopOk;
     } else {
         logx::Write("engine: %s", err.c_str());
     }
@@ -526,7 +542,46 @@ void Init() {
         }
     }
 
+    // Player lookup, from the start of the Give Each Craftable callback:
+    // sub rsp,28h; lea rcx,[rip+handle]; mov r9d,edx; call lookup
+    {
+        std::string e;
+        const size_t cb = idx.ItemValue("Give Each Craftable", itemFunction, false, e);
+        if (cb && scan::FindAll(img.base + cb, 15, scan::Parse(kPlayerLookupStart)).size() == 1) {
+            int32_t d;
+            std::memcpy(&d, img.base + cb + 7, 4);
+            g_playerHandle = img.base + cb + 11 + d;
+            g_playerLookup = reinterpret_cast<PlayerLookup>(rva(dscan::FirstCall(img.base, cb + 14, 1)));
+        } else {
+            logx::Write("engine: player lookup not found");
+        }
+    }
+
     logx::Write("engine: scan and patches took %llu ms", GetTickCount64() - t0);
+}
+
+bool GameLoopHooked() { return g_loopHooked; }
+
+void RunOnGameThread(std::function<void()> fn) { Enqueue(std::move(fn)); }
+
+void AddTickHandler(std::function<void()> fn) {
+    std::lock_guard<std::mutex> l(g_tickLock);
+    g_tickHandlers.push_back(std::move(fn));
+}
+
+bool PlayerPresent() {
+    if (!g_playerLookup) return false;
+    void* p = nullptr;
+    __try {
+        p = g_playerLookup(g_playerHandle);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+    return p != nullptr;
+}
+
+bool CallDevCallback(DevCallback cb, uint64_t data, int message, bool* result) {
+    return RunCallback(reinterpret_cast<Callback>(cb), data, message, result);
 }
 
 } // namespace engine

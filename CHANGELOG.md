@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.1.0 — 2026-10-29
+
+### Fixed
+
+- **Keys leaked to the game while the menu was open.** The game reads some keys
+  (the arrow keys, Enter) outside raw input, so navigating the menu also opened
+  the weapon cross and switched weapons. While the menu is open, the keyboard
+  state functions and the window's key, character and mouse-button messages
+  now report nothing pressed as well (releases still get through, Alt+F4 still
+  works).
+- **Key presses arriving within one frame were handled out of order** (e.g. Esc
+  then Down then Enter), which could toggle the wrong option. The menu now takes
+  one key press per frame.
+
+### Changed
+
+- Give Melee / Give Joel use the game's own weapon names from its `weapon-art`
+  data, checked in-game with the engine's weapon lookup (18 of 18 found).
+- Internal: function lookup by name scans back for the exact prologue instead
+  of relying on int3 padding.
+
+### Added (experimental — may not work)
+
+- **Character page: Play as Ellie / Play as Joel in Winter.** Every player
+  spawn goes through one engine function that receives the character to spawn
+  (e.g. `t1x-joel-costume-02`); the menu swaps it for the matching Ellie outfit
+  (or a chosen one). **Swap Now** applies it right away through the game's own
+  Restart Checkpoint.
+- Known problems: in Joel's chapters Ellie's player animation packages are not
+  loaded, so she may be unable to move; pressing Swap Now twice in a row hung
+  the game in testing. The swap is never saved between launches. To go back,
+  turn it off and use Pause > Restart Checkpoint (or restart the game).
+
 ## 1.0.0 — 2026-10-28
 
 First release.

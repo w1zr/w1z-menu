@@ -260,6 +260,33 @@ static void TestEngine(const char* path) {
     }
     CHECK(dscan::Fnv1a64("a") == 0xaf63dc4c8601ec8cull && dscan::Fnv1a64("") == 0xcbf29ce484222325ull, "FNV-1a 64 matches the reference values");
 
+    // Character swap: Spawn Player -> spawn function -> core spawn.
+    {
+        dscan::Index ci(b, textEnd, image.size());
+        ci.WantLabel(engine::kSpawnPlayerLabel);
+        ci.Build();
+        std::string err;
+        const size_t cb = ci.ItemValue(engine::kSpawnPlayerLabel, itemBoolCb, false, err);
+        const auto call = cb ? scan::FindAll(b + cb, 0x60, scan::Parse(engine::kSpawnCall)) : std::vector<size_t>{};
+        const size_t spawn = call.size() == 1 ? dscan::FirstCall(b, cb + call[0] + 15, 1) : 0;
+        uint64_t def = 0;
+        if (spawn) {
+            const auto d = scan::FindAll(b + spawn, 0x100, scan::Parse(engine::kDefaultCharacter));
+            if (!d.empty()) std::memcpy(&def, b + spawn + d[0] + 2, 8);
+        }
+        const auto cc = spawn ? scan::FindAll(b + spawn, 0x200, scan::Parse(engine::kCoreCall)) : std::vector<size_t>{};
+        const size_t core = cc.size() == 1 ? dscan::FirstCall(b, spawn + cc[0] + 5, 1) : 0;
+        const bool pro = core && scan::FindAll(b + core, 25, scan::Parse(engine::kCorePrologue)).size() == 1;
+        CHECK(cb && spawn && def == dscan::Fnv1a64(engine::kJoel) && core && pro,
+              "character swap: Spawn Player 0x%zX, spawn 0x%zX (default = hash(t1x-joel)), core spawn 0x%zX", cb, spawn, core);
+        std::string rerr;
+        const size_t rs = dscan::FindFunctionByName(b, textEnd, image.size(), engine::kRestartName, engine::kRestartPrologue, rerr);
+        CHECK(rs != 0, "GameRestartCheckpoint at 0x%zX %s", rs, rerr.c_str());
+        const auto pl = scan::FindAll(b + idx.ItemValue("Give Each Craftable", itemFunction, false, rerr), 15,
+                                      scan::Parse(engine::kPlayerLookupStart));
+        CHECK(pl.size() == 1, "player lookup found at the start of Give Each Craftable");
+    }
+
     // Skins (from the TLOU Outfit Changer): every site found, and both menu
     // reads are reads of the Extras flag, so Unlock All Extras patches the other 31.
     {

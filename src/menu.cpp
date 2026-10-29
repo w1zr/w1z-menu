@@ -42,7 +42,7 @@ struct Page {
 };
 
 enum PageId {
-    kHome, kSearch, kFavorites, kPlayer, kWeapons, kGiveJoel, kGiveEllie, kGiveMelee, kGiveItems,
+    kHome, kSearch, kFavorites, kPlayer, kCharacter, kWeapons, kGiveJoel, kGiveEllie, kGiveMelee, kGiveItems,
     kInventory, kCamera, kUnlocks, kScenes, kMisc, kSettings, kStatus, kPageCount
 };
 std::vector<Page> g_pages;
@@ -596,6 +596,9 @@ void BuildPages() {
                       {Link("Search", kSearch, "Type to find any option."),
                        Link("Favorites", kFavorites, "Options you starred with Tab / X."),
                        Link("Player", kPlayer, "God mode, sprint, stealth and more."),
+#if W1Z_CHARACTER_SWAP
+                       Link("Character (Experimental)", kCharacter, "Play as Ellie or Joel. Experimental: may not work."),
+#endif
                        Link("Weapons and Items", kWeapons, "Ammo, reloads, weapon options and giving weapons."),
                        Link("Inventory", kInventory, "Supplies, parts, pills and recipes."),
                        Link("Camera", kCamera, "Free camera and HUD."),
@@ -607,6 +610,9 @@ void BuildPages() {
     g_pages[kFavorites] = {"Favorites", {}};
     g_pages[kPlayer] = {"Player",
                         {Feat("GodMode"), Feat("NoHitReactions"), Feat("InfiniteSprint"), Feat("Undetectable"), Feat("OneHitKills")}};
+    g_pages[kCharacter] = {"Character",
+                           {Header("EXPERIMENTAL - MAY NOT WORK"), Feat("PlayAsEllie"), Feat("PlayAsJoel"), Feat("SwapNow"),
+                            Header("OPTIONS"), Feat("EllieOutfit")}};
     g_pages[kWeapons] = {"Weapons and Items",
                          {Header("WEAPONS"), Feat("InfiniteAmmo"), Feat("NoReload"), Feat("ShowInfinitySign"),
                           Feat("InfiniteWeaponHealth"), Feat("NoWeaponSway"), Feat("NoAutoReload"), Feat("NoAutoHolster"),

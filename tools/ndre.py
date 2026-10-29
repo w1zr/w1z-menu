@@ -145,6 +145,32 @@ class Image:
             out.append((label, ctor, vals, i))
         return out
 
+    def func_of(self, rva):
+        """(begin, end) of the function containing rva, from the .pdata exception table."""
+        if not hasattr(self, "_pdata"):
+            import bisect
+            pe = pefile.PE(EXE, fast_load=True)
+            d = pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_EXCEPTION"]]
+            rows = []
+            for i in range(d.VirtualAddress, d.VirtualAddress + d.Size, 12):
+                b, e, u = struct.unpack_from("<III", self.mem, i)
+                if b:
+                    rows.append((b, e, u))
+            rows.sort()
+            self._pdata = rows
+            self._pbeg = [r[0] for r in rows]
+        import bisect
+        i = bisect.bisect_right(self._pbeg, rva) - 1
+        while i >= 0:
+            b, e, u = self._pdata[i]
+            if b <= rva < e:
+                # chained unwind info: walk to the primary function
+                return b, e
+            i -= 1
+            if rva - self._pdata[i][0] > 0x100000:
+                break
+        return None
+
     def dis(self, rva, count=30):
         out = []
         for ins in self.md.disasm(bytes(self.mem[rva : rva + count * 15]), rva):

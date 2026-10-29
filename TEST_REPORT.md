@@ -1,3 +1,20 @@
+# Test report — w1z's menu 1.1.0
+
+## 1.1.0 changes (2026-10-29)
+
+| Test | Result |
+|---|---|
+| Arrow keys / Enter with the menu open no longer reach the game (weapon cross stays closed) | **Pass** (in-game, Pittsburgh Encounter: Down moved the menu, no weapon cross; before the fix it opened) |
+| Menu navigation still works (arrows, Enter, Esc) | **Pass** (in-game) |
+| Several keys within one frame handled in order | **Not tested** in-game (code change only) |
+| Offline: all signature, read-count and proxy tests on both executables | **Pass** |
+| Play as Ellie + Swap Now (experimental) | **Partial**: Swap Now restarted the checkpoint and the player spawned as Ellie (`t1x-joel-costume-02 -> t1x-ellie-costume-02`) with no crash, but Ellie **could not move** |
+| Swap Now pressed a second time while Ellie | **Fail**: the game hung (stopped drawing frames) |
+| Give Ellie her weapons automatically after a swap | **Fail**: exception in the give-weapon function during the restart; option removed from the menu |
+| Play as Joel in Winter | **Not tested** |
+
+The 1.0.0 results below still apply.
+
 # Test report — w1z's menu 1.0.0
 
 **Environment:** Windows 11 Home 10.0.26300, NVIDIA RTX 4060, The Last of Us

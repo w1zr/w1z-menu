@@ -185,14 +185,19 @@ size_t FindFunctionByName(const uint8_t* image, size_t textEnd, size_t imageSize
     for (size_t i = 3; i + 7 <= textEnd; ++i) {
         if (image[i + 1] != 0x8D || !IsRex(image[i]) || !RipModrm(image[i + 2])) continue;
         if (static_cast<size_t>(static_cast<int64_t>(i + 7) + Disp(image + i + 3)) != strings[0]) continue;
-        // Walk back to the function start (int3 padding) and match the prologue.
-        size_t j = i;
-        while (j > 2 && i - j < 0x800 && !(image[j - 1] == 0xCC && image[j - 2] == 0xCC)) --j;
-        if (j + p.bytes.size() > textEnd) continue;
-        bool match = true;
-        for (size_t k = 0; k < p.bytes.size() && match; ++k)
-            if (p.bytes[k] >= 0 && image[j + k] != p.bytes[k]) match = false;
-        if (match) funcs.insert(j);
+        // The function start is the closest earlier position (within 2 KB)
+        // where the expected prologue matches; functions are not always
+        // preceded by int3 padding.
+        for (size_t j = i; j > 0 && i - j < 0x800; --j) {
+            if (j + p.bytes.size() > textEnd) continue;
+            bool match = true;
+            for (size_t k = 0; k < p.bytes.size() && match; ++k)
+                if (p.bytes[k] >= 0 && image[j + k] != p.bytes[k]) match = false;
+            if (match) {
+                funcs.insert(j);
+                break;
+            }
+        }
     }
     if (funcs.size() != 1) {
         error = std::string("function for \"") + name + "\" matched " + std::to_string(funcs.size()) + " times";

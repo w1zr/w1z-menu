@@ -2,7 +2,7 @@
 
 ![w1z's menu](package/fluffy/screenshot.png)
 
-**Download:** [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.0.0.zip`.
+**Download:** [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.1.0.zip`.
 
 An in-game mod menu for **The Last of Us Part I** (PC). Press **Insert** or
 **F9** (controller: **L3 + R3**) to open it. While it is open the game gets no
@@ -20,6 +20,7 @@ keeps working.
 | Page | Options |
 |---|---|
 | Player | God Mode, No Hit Reactions, Infinite Sprint, Undetectable Player, One Hit Kills |
+| Character (**experimental**) | Play as Ellie in Joel's chapters (outfit matches the chapter, or pick one), Play as Joel in Winter, Swap Now |
 | Weapons and Items | Infinite Ammo (normal reloads, F7), No Reload (player only, F8), infinity sign on the HUD, Infinite Weapon Health, Disable Weapon Sway, Disable Auto Reload, Disable Auto Holster, Drop All Weapons, Give Joel (9 guns), Give Ellie (3), Give Melee (6), Give Items (throwables, health kits, crafting materials), Infinite Crafting, Infinite Craftables |
 | Inventory | Give All + Upgrades, Give Each Craftable, Weapon Parts x10 / x100, Pills x10 / x100, All Recipes, No Recipes |
 | Camera | Manual Camera, Teleport Player To Camera, Hide HUD |
@@ -51,7 +52,7 @@ Plus **Search** (just start typing) and **Favorites** (Tab / X on any option).
 
 ## Install with Fluffy Mod Manager (recommended)
 
-1. Put `w1zsMenu-v1.0.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
+1. Put `w1zsMenu-v1.1.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
 2. In Fluffy, choose The Last of Us Part I and tick **w1z's menu**.
 3. Start the game.
 
@@ -97,6 +98,7 @@ Extras unlocks only last while the menu is loaded.
 - **Scene Teleport** only offers Replay Current Scene; jumping to other chapters
   is not in this version.
 - **Game Speed** is experimental.
+- **The character swap (Play as Ellie / Swap Now) is experimental.** To go back, turn it off and use Pause > Restart Checkpoint.
 - Steam achievement unlock/clear is intentionally not included (it changes your
   Steam account).
 
