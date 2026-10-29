@@ -2,7 +2,7 @@
 
 ![w1z's menu](package/fluffy/screenshot.png)
 
-**Download:** [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.1.0.zip`.
+**Download:** [Nexus Mods](https://www.nexusmods.com/thelastofuspart1/mods/256) or [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.1.0.zip`.
 
 An in-game mod menu for **The Last of Us Part I** (PC). Press **Insert** or
 **F9** (controller: **L3 + R3**) to open it. While it is open the game gets no

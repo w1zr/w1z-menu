@@ -1,0 +1,84 @@
+<h2>w1z's menu</h2>
+<p>An in-game mod menu for <strong>The Last of Us Part I</strong>. Press <strong>Insert</strong> or <strong>F9</strong> (controller: <strong>L3 + R3</strong>) and change the player, weapons, inventory, outfits, camera and more while you play. <strong>You don't need to finish the game first.</strong></p>
+<p>Almost everything in the menu is Naughty Dog's own code: the game still contains the studio's developer menu, and w1z's menu uses its flags and functions directly instead of poking random memory. Anything the menu can't find in your version of the game is greyed out with the reason — everything else keeps working.</p>
+<h3>Features</h3>
+<p><strong>Player</strong></p>
+<ul>
+<li>God Mode, No Hit Reactions, Infinite Sprint, Undetectable Player, One Hit Kills</li>
+</ul>
+<p><strong>Character (experimental)</strong></p>
+<ul>
+<li>Play as Ellie in Joel's chapters or as Joel in Winter, and <strong>Swap Now</strong> to switch. <em>The character swap is experimental.</em></li>
+</ul>
+<p><strong>Weapons and Items</strong></p>
+<ul>
+<li><strong>Infinite Ammo</strong> with normal reloads (F7) and <strong>No Reload</strong> (F8, player only) — the HUD shows ∞</li>
+<li>Infinite Weapon Health, Disable Weapon Sway, Disable Auto Reload, Disable Auto Holster, Drop All Weapons</li>
+<li><strong>Give Joel</strong> (9 guns), <strong>Give Ellie</strong> (3), <strong>Give Melee</strong> (6), <strong>Give Items</strong> (shivs, health kits, molotovs, bombs, bricks, bottles, crafting materials)</li>
+<li>Infinite Crafting, Infinite Craftables</li>
+</ul>
+<p><strong>Inventory</strong></p>
+<ul>
+<li>Give All + Upgrades, Give Each Craftable, Weapon Parts x10 / x100, Pills x10 / x100, All Recipes / No Recipes</li>
+</ul>
+<p><strong>Outfits and Unlocks</strong></p>
+<ul>
+<li><strong>Change your outfit in-game</strong> from Pause &gt; Skins (and Extras &gt; Skins) without finishing the story — every skin owned</li>
+<li>Give / Remove Treasures, Give Journal Pages, Reset Journal</li>
+<li>All Chapters, All Encounters, All Extras — only while the menu is loaded, never written to your profile</li>
+</ul>
+<p><strong>Camera</strong></p>
+<ul>
+<li>Manual Camera (free camera), Teleport Player To Camera, Hide HUD</li>
+</ul>
+<p><strong>Scenes and Misc</strong></p>
+<ul>
+<li>Replay Current Scene, Game Speed (experimental)</li>
+</ul>
+<p><strong>Menu</strong></p>
+<ul>
+<li>Keyboard, mouse and controller; <strong>Search</strong> (just start typing) and <strong>Favorites</strong> (Tab / X)</li>
+<li>The game gets <strong>no input</strong> while the menu is open</li>
+<li>Settings save automatically; Feature Status page shows what loaded</li>
+</ul>
+<h3>Controls</h3>
+<ul>
+<li><strong>Open / close:</strong> Insert or F9 — controller L3 + R3</li>
+<li><strong>Move:</strong> Up / Down or mouse — D-pad</li>
+<li><strong>Select:</strong> Enter or click — A / Cross</li>
+<li><strong>Back:</strong> Esc, Backspace or right click — B / Circle</li>
+<li><strong>Favorite:</strong> Tab — X / Square</li>
+</ul>
+<h3>Installation</h3>
+<p><strong>Fluffy Mod Manager (recommended)</strong></p>
+<ol>
+<li>Put <em>w1zsMenu-v1.1.0.zip</em> in <em>Fluffy Mod Manager\Games\TLOU\Mods\</em>.</li>
+<li>Open Fluffy and tick <strong>w1z's menu</strong>. Untick it to uninstall.</li>
+</ol>
+<p><strong>Manual</strong></p>
+<ol>
+<li>Copy <em>winmm.dll</em> and <em>w1zsMenu.ini</em> from the zip into the folder that contains <em>tlou-i.exe</em><br>(e.g. <em>C:\Program Files (x86)\Steam\steamapps\common\The Last of Us Part I\</em>).</li>
+<li>To uninstall, delete <em>winmm.dll</em>, <em>w1zsMenu.ini</em>, <em>w1zsMenu.log</em> and <em>w1zsMenu-README.txt</em> from that folder.</li>
+</ol>
+<p>Install while the game is closed. No other loader is needed. <em>modinfo.ini</em> and <em>screenshot.png</em> in the zip are only for Fluffy.</p>
+<h3>Compatibility</h3>
+<ul>
+<li><strong>Tested:</strong> Steam, build 18995818 (game version 1.1.5).</li>
+<li><strong>Not tested:</strong> Epic Games Store.</li>
+<li>Loads as <em>winmm.dll</em>, so it works alongside <em>version.dll</em> and <em>xinput1_4.dll</em> mods.</li>
+<li>Includes everything from my <strong>TLOU Infinite Ammo</strong> and <strong>TLOU Outfit Changer</strong> mods — you only need the menu. If either is still installed, the menu leaves that part to it.</li>
+<li>Compatible with outfit/texture mods installed through Fluffy.</li>
+<li>If a game update changes code the menu relies on, that feature is greyed out with the reason in the menu and in <em>w1zsMenu.log</em>.</li>
+</ul>
+<h3>Saves</h3>
+<p>The menu never writes save files itself. Giving items, weapons, parts, treasures or journal pages changes your current game, and the game saves that at its next checkpoint like any other change.</p>
+<h3>Known issues</h3>
+<ul>
+<li>The character swap is experimental.</li>
+<li>In <strong>Encounters</strong>, a weapon's magazine size can change after a restart. This is the game's own behaviour — it also happens with no mods installed.</li>
+<li>Pause While Open is not available yet (the game still gets no input while the menu is open).</li>
+<li>Scene Teleport only offers Replay Current Scene for now.</li>
+</ul>
+<h3>Source</h3>
+<p>Open source (MIT): <a href="https://github.com/w1zr/w1z-menu">github.com/w1zr/w1z-menu</a><br>Uses MinHook and Dear ImGui.</p>
+<p>Single-player only. Not affiliated with Naughty Dog or Sony Interactive Entertainment.</p>
