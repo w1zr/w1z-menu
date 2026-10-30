@@ -1,4 +1,7 @@
-// Settings stored in w1zsMenu.ini next to the game executable. Reads and
+// Settings stored in Documents\w1z's menu\w1zsMenu.ini, outside the game
+// folder, so updating or reinstalling the menu (or Fluffy) never resets them.
+// Older versions kept the file next to the game executable; it is copied over
+// once. Reads and
 // writes go straight to the file (Get/WritePrivateProfileString), so every
 // change made in the menu is saved immediately.
 //
@@ -10,7 +13,9 @@
 
 namespace settings {
 
-void Init(const wchar_t* iniPath, const wchar_t* legacyIniPath);
+// oldIniPath: the file older versions used, copied once if iniPath is new.
+void Init(const wchar_t* iniPath, const wchar_t* oldIniPath, const wchar_t* legacyIniPath);
+const std::wstring& Path();
 
 bool GetBool(const char* section, const char* key, bool def);
 int GetInt(const char* section, const char* key, int def);
@@ -23,5 +28,6 @@ void SetString(const char* section, const char* key, const std::string& value);
 // True when Init created the file (first run or imported from the old mod).
 bool CreatedThisRun();
 bool ImportedLegacy();
+bool MovedFromGameFolder();
 
 } // namespace settings

@@ -285,6 +285,40 @@ static void TestEngine(const char* path) {
         const auto pl = scan::FindAll(b + idx.ItemValue("Give Each Craftable", itemFunction, false, rerr), 15,
                                       scan::Parse(engine::kPlayerLookupStart));
         CHECK(pl.size() == 1, "player lookup found at the start of Give Each Craftable");
+
+        // Package loader for the swapped player's animations: every call site
+        // that matches must resolve to the same loader and checks.
+        const auto sites = scan::FindAll(b, textEnd, scan::Parse(engine::kPackageCheckCall));
+        auto rel = [&](size_t at) {
+            int32_t r;
+            std::memcpy(&r, b + at, 4);
+            return static_cast<size_t>(static_cast<int64_t>(at) + 4 + r);
+        };
+        size_t fn = 0, check = 0, mgr = 0;
+        int good = 0;
+        for (size_t s : sites) {
+            const size_t f = rel(s + 25), c = rel(s + 8);
+            if (scan::FindAll(b + f, 40, scan::Parse(engine::kLoadPackagePrologue)).size() == 1 &&
+                scan::FindAll(b + c, 30, scan::Parse(engine::kPackageLoadingCheck)).size() == 1 &&
+                scan::FindAll(b + c + engine::kPackageLoadedOffset, 30, scan::Parse(engine::kPackageLoadedCheck)).size() == 1) {
+                if (good++ == 0) fn = f, check = c, mgr = rel(s + 3);
+                else if (f != fn || c != check || rel(s + 3) != mgr) good = -1000;
+            }
+        }
+        CHECK(good >= 1, "package loader 0x%zX, checks 0x%zX, manager 0x%zX (%d of %zu sites agree)", fn, check, mgr,
+              good, sites.size());
+        dscan::LevelSetLoader lsl;
+        std::string lerr;
+        CHECK(dscan::FindLevelSetLoader(b, textEnd, image.size(), lsl, lerr),
+              "level manager 0x%zX, SetLevelSet 0x%zX, want-load rebuild 0x%zX %s", lsl.mgrGlobal, lsl.setLevelSet,
+              lsl.rebuildWants, lerr.c_str());
+        std::string cerr2;
+        const size_t craftFlag = dscan::FindEllieCraftFlag(b, textEnd, image.size(), cerr2);
+        CHECK(craftFlag != 0, "Ellie crafting flag 0x%zX %s", craftFlag, cerr2.c_str());
+        const auto look = scan::FindAll(b, textEnd, scan::Parse(engine::kLookResolve));
+        CHECK(look.size() == 1, "look resolver found once (%zu matches, 0x%zX)", look.size(), look.empty() ? 0 : look[0]);
+        static_assert(sizeof(engine::kEllieOnlyPackages) / sizeof(char*) == 49 && sizeof(engine::kJoelOnlyPackages) / sizeof(char*) == 30,
+                      "player package lists: 49 for Ellie, 30 for Joel");
     }
 
     // Skins (from the TLOU Outfit Changer): every site found, and both menu

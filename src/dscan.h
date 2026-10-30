@@ -86,6 +86,19 @@ private:
 size_t FindFunctionByName(const uint8_t* image, size_t textEnd, size_t imageSize, const char* name,
                           const char* prologue, std::string& error);
 
+// LevelMgr's level-set code, found from the console's LoadLevelSet command
+// (patterns in engine_defs.h): the LevelMgr pointer global and the function
+// that rebuilds the want-load list from the current level set. Every check
+// must pass; false (and error) otherwise.
+struct LevelSetLoader {
+    size_t mgrGlobal = 0, setLevelSet = 0, rebuildWants = 0;
+};
+bool FindLevelSetLoader(const uint8_t* image, size_t textEnd, size_t imageSize, LevelSetLoader& out, std::string& error);
+
+// The game flag that lets an Ellie player craft outside the Winter world
+// (patterns in engine_defs.h). Returns its RVA, or 0 (and error).
+size_t FindEllieCraftFlag(const uint8_t* image, size_t textEnd, size_t imageSize, std::string& error);
+
 // Rip-relative byte compares at the start of a callback, e.g. Undetectable
 // Player's three flags: every `cmp byte ptr [rip+x], r8` in the first `span`
 // bytes of `func`, in order.

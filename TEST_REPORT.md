@@ -1,3 +1,29 @@
+# Test report — w1z's menu 1.2.0 (2026-10-30)
+
+Steam `tlou-i.exe` 1.1.4.0 (build 18995818), Windows 11. In-game tests by the
+owner in Joel's chapters / Encounters with Play as Ellie on.
+Offline: `scan_test` passes on `tlou-i.exe` and `tlou-i-l.exe` (level-set
+loader, package loader, Ellie crafting flag, look resolver found on both);
+`proxy_test` passes.
+
+| Test | Result |
+|---|---|
+| Swap Now streams Ellie's packages, then restarts as Ellie | **Pass** (50 of 51 loaded; only water wading missing outside water levels) |
+| Ellie walks, runs, stands, interacts | **Pass** |
+| Tab opens crafting as Ellie outside Winter | **Pass** |
+| Joel's 9mm as Ellie: straight, aims, fires, recoils, reloads | **Pass** (straight hold confirmed live, then in the built DLL) |
+| Revolver as Ellie | **Pass** |
+| Bow as Ellie (after reverting the bow test change) | **Pass**: aims and shoots normally; arm clips through the bow when put away (known) |
+| Shotgun / hunting rifle as Ellie | Works; twitch in from the right when aiming (known) |
+| Replace Campaign Ellie with Joel: companion is Joel, follows, AI works | **Pass** (owner: "working kind of good"; log shows the companion's Ellie look resolved as Joel's, player stays Ellie) |
+| Companion option turned off → Ellie companion again | Not tested |
+| Cutscenes with the Joel companion | Not tested separately |
+| Chapter transitions, checkpoint reloads with the companion | Not tested separately |
+| Play as Joel in Winter | Not tested in 1.2.0 |
+| Remember Character Swap across a relaunch | Not tested |
+| Settings moved to Documents | **Pass** (log) |
+| Release zip `w1zsMenu-v1.2.0.zip` | Same code as the tested DLL, rebuilt with the 1.2.0 version and texts |
+
 # Test report — w1z's menu 1.1.0
 
 ## 1.1.0 changes (2026-10-29)

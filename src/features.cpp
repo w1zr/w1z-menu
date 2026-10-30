@@ -24,6 +24,7 @@ std::mutex g_noticeLock;
 
 bool Persist(const Feature& f) {
     if (f.section.empty()) return false;
+    if (f.section == "Character") return settings::GetBool("Menu", "RememberSwap", false);
     return f.alwaysSave || settings::GetBool("Menu", "RememberToggles", true);
 }
 

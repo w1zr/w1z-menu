@@ -31,9 +31,10 @@ cl %TPFLAGS% /c %IMGUI% /Fo"build\obj3\\" || exit /b 1
 cl %COMMON% /W3 /c %MINHOOK% /Fo"build\obj3\\" || exit /b 1
 cl %CFLAGS% /c %SRC% /Fo"build\obj\\" || exit /b 1
 ml64 /nologo /c /Fo"build\obj\winmm_stubs.obj" src\winmm_stubs.asm || exit /b 1
+ml64 /nologo /c /Fo"build\obj\trace_thunks.obj" src\trace_thunks.asm || exit /b 1
 if exist build\version.dll del build\version.dll
 link /nologo /DLL /DEF:src\winmm.def /GUARD:CF /OUT:build\winmm.dll build\obj\*.obj build\obj3\*.obj ^
- user32.lib kernel32.lib d3d12.lib dxgi.lib || exit /b 1
+ user32.lib kernel32.lib shell32.lib d3d12.lib dxgi.lib || exit /b 1
 cl %CFLAGS% tests\scan_test.cpp src\scan.cpp src\dscan.cpp src\skinscan.cpp /Fo"build\\" /Fe"build\scan_test.exe" || exit /b 1
 cl %CFLAGS% tests\proxy_test.cpp /Fo"build\\" /Fe"build\proxy_test.exe" || exit /b 1
 

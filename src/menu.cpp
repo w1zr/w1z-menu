@@ -597,7 +597,7 @@ void BuildPages() {
                        Link("Favorites", kFavorites, "Options you starred with Tab / X."),
                        Link("Player", kPlayer, "God mode, sprint, stealth and more."),
 #if W1Z_CHARACTER_SWAP
-                       Link("Character (Experimental)", kCharacter, "Play as Ellie or Joel. Experimental: may not work."),
+                       Link("Character", kCharacter, "Play as Ellie in Joel's chapters, with Joel as her companion."),
 #endif
                        Link("Weapons and Items", kWeapons, "Ammo, reloads, weapon options and giving weapons."),
                        Link("Inventory", kInventory, "Supplies, parts, pills and recipes."),
@@ -611,8 +611,8 @@ void BuildPages() {
     g_pages[kPlayer] = {"Player",
                         {Feat("GodMode"), Feat("NoHitReactions"), Feat("InfiniteSprint"), Feat("Undetectable"), Feat("OneHitKills")}};
     g_pages[kCharacter] = {"Character",
-                           {Header("EXPERIMENTAL - MAY NOT WORK"), Feat("PlayAsEllie"), Feat("PlayAsJoel"), Feat("SwapNow"),
-                            Header("OPTIONS"), Feat("EllieOutfit")}};
+                           {Header("CHARACTER SWAP"), Feat("PlayAsEllie"), Feat("PlayAsJoel"), Feat("SwapNow"),
+                            Header("OPTIONS"), Feat("ReplaceEllieWithJoel"), Feat("EllieOutfit"), Feat("SwapGivesRecipes")}};
     g_pages[kWeapons] = {"Weapons and Items",
                          {Header("WEAPONS"), Feat("InfiniteAmmo"), Feat("NoReload"), Feat("ShowInfinitySign"),
                           Feat("InfiniteWeaponHealth"), Feat("NoWeaponSway"), Feat("NoAutoReload"), Feat("NoAutoHolster"),
@@ -658,7 +658,7 @@ void BuildPages() {
 
     g_pages[kSettings] = {
         "Settings",
-        {Header("MENU"), Feat("PauseWhileOpen"), Feat("ControllerToggle"), Feat("RememberToggles"), Feat("Notifications"),
+        {Header("MENU"), Feat("PauseWhileOpen"), Feat("ControllerToggle"), Feat("RememberToggles"), Feat("RememberSwap"), Feat("Notifications"),
          Feat("BeepOnToggle"), Feat("Scale"), Link("Feature Status", kStatus, "Which features loaded, and why any are unavailable."),
          Header("KEYS"),
          Info("Open / Close Menu", menuKeys, "Change MenuKey / MenuKey2 in w1zsMenu.ini (restart to apply)."),
@@ -682,6 +682,10 @@ void Init() {
     menuSetting("ControllerToggle", "Controller Shortcut", "L3 + R3 opens and closes the menu.", Kind::Toggle, 1);
     menuSetting("RememberToggles", "Remember Toggles", "Feature toggles are restored the next time you start the game.",
                 Kind::Toggle, 1);
+    menuSetting("RememberSwap", "Remember Character Swap",
+                "Play as Ellie / Play as Joel stay on for the next launch (the swap applies when a game loads). "
+                "All settings are kept in Documents\\w1z's menu, so updates never reset them.",
+                Kind::Toggle, 0);
     menuSetting("Notifications", "Notifications", "Show a short message when a hotkey toggles something.", Kind::Toggle, 1);
     features::Feature& beep = features::Add("BeepOnToggle", "InfiniteAmmo", "Hotkey Sound",
                                             "Play a Windows sound when F7/F8 toggle something.", Kind::Toggle, 1);

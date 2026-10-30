@@ -8,6 +8,7 @@ namespace settings {
 namespace {
 
 std::wstring g_ini;
+bool g_moved = false;
 std::mutex g_lock;
 bool g_created = false;
 bool g_imported = false;
@@ -38,6 +39,8 @@ const char kDefaultIni[] =
     "PauseWhileOpen=1\r\n"
     "; 1 = feature toggles are remembered for the next launch.\r\n"
     "RememberToggles=1\r\n"
+    "; 1 = Play as Ellie / Joel are remembered too (the swap applies when a game loads).\r\n"
+    "RememberSwap=0\r\n"
     "; Menu size in percent (75-200).\r\n"
     "Scale=100\r\n"
     "; 1 = small on-screen message when a hotkey toggles something.\r\n"
@@ -60,9 +63,18 @@ const char* kLegacyKeys[] = {"InfiniteAmmo", "ShowInfinitySign", "NoReload", "To
 
 } // namespace
 
-void Init(const wchar_t* iniPath, const wchar_t* legacyIniPath) {
+void Init(const wchar_t* iniPath, const wchar_t* oldIniPath, const wchar_t* legacyIniPath) {
     g_ini = iniPath;
     if (GetFileAttributesW(iniPath) != INVALID_FILE_ATTRIBUTES) return;
+    // The folder (Documents\w1z's menu) may not exist yet.
+    std::wstring dir(iniPath);
+    dir = dir.substr(0, dir.find_last_of(L'\\'));
+    CreateDirectoryW(dir.c_str(), nullptr);
+    if (oldIniPath && wcscmp(oldIniPath, iniPath) != 0 && GetFileAttributesW(oldIniPath) != INVALID_FILE_ATTRIBUTES &&
+        CopyFileW(oldIniPath, iniPath, TRUE)) {
+        g_moved = true;
+        return;
+    }
 
     HANDLE f = CreateFileW(iniPath, GENERIC_WRITE, 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (f == INVALID_HANDLE_VALUE) return;
@@ -81,6 +93,9 @@ void Init(const wchar_t* iniPath, const wchar_t* legacyIniPath) {
         g_imported = true;
     }
 }
+
+const std::wstring& Path() { return g_ini; }
+bool MovedFromGameFolder() { return g_moved; }
 
 bool GetBool(const char* section, const char* key, bool def) {
     return GetInt(section, key, def ? 1 : 0) != 0;

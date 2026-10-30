@@ -16,6 +16,7 @@
 #include "../third_party/minhook/include/MinHook.h"
 
 #include <windows.h>
+#include <shlobj.h>
 
 namespace {
 
@@ -69,18 +70,25 @@ void Init() {
     // (launcher, crash handler); they only get the forwarding.
     if (!game::IsSupportedHost()) return;
 
-    wchar_t ini[MAX_PATH], legacy[MAX_PATH], log[MAX_PATH];
-    if (!GamePath(L"w1zsMenu.ini", ini, MAX_PATH) || !GamePath(L"TLOUInfiniteAmmo.ini", legacy, MAX_PATH) ||
+    wchar_t ini[MAX_PATH], oldIni[MAX_PATH], legacy[MAX_PATH], log[MAX_PATH];
+    if (!GamePath(L"w1zsMenu.ini", oldIni, MAX_PATH) || !GamePath(L"TLOUInfiniteAmmo.ini", legacy, MAX_PATH) ||
         !GamePath(L"w1zsMenu.log", log, MAX_PATH))
         return;
+    // Settings live in Documents so updates never reset them (game folder if
+    // Documents can't be found).
+    if (FAILED(SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, ini)) ||
+        wcscat_s(ini, MAX_PATH, L"\\w1z's menu\\w1zsMenu.ini") != 0)
+        wcscpy_s(ini, MAX_PATH, oldIni);
 
-    settings::Init(ini, legacy);
+    settings::Init(ini, oldIni, legacy);
     logx::Open(log, settings::GetBool("InfiniteAmmo", "Logging", true));
     logx::Write("w1z's menu " MENU_VERSION " loaded (winmm.dll)");
     if (proxy::MissingExports())
         logx::Write("warning: %d winmm exports not found in System32\\winmm.dll", proxy::MissingExports());
     if (settings::CreatedThisRun())
         logx::Write("created w1zsMenu.ini%s", settings::ImportedLegacy() ? " (settings imported from TLOUInfiniteAmmo.ini)" : "");
+    if (settings::MovedFromGameFolder()) logx::Write("settings copied from the game folder to Documents");
+    logx::Write("settings file: %ls", settings::Path().c_str());
 
     // Loader lock is held here: do the real work on a thread.
     HANDLE t = CreateThread(nullptr, 0, Startup, nullptr, 0, nullptr);

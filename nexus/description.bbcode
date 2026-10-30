@@ -1,5 +1,7 @@
 [size=5][b]w1z's menu[/b][/size]
 
+[b]New in 1.2.0: a playable Ellie that really works[/b] — Ellie moves, aims, shoots and [b]crafts in every chapter[/b], [b]Joel's 9mm grip is correct[/b], and [b]Joel follows her as the AI companion[/b].
+
 An in-game mod menu for [b]The Last of Us Part I[/b]. Press [b]Insert[/b] or [b]F9[/b] (controller: [b]L3 + R3[/b]) and change the player, weapons, inventory, outfits, camera and more while you play. [b]You don't need to finish the game first.[/b]
 
 Almost everything in the menu is Naughty Dog's own code: the game still contains the studio's developer menu, and w1z's menu uses its flags and functions directly instead of poking random memory. Anything the menu can't find in your version of the game is greyed out with the reason — everything else keeps working.
@@ -9,9 +11,13 @@ Almost everything in the menu is Naughty Dog's own code: the game still contains
 [list]
 [*]God Mode, No Hit Reactions, Infinite Sprint, Undetectable Player, One Hit Kills
 [/list]
-[b]Character (experimental)[/b]
+[b]Character — Playable Ellie that really works (new in 1.2.0)[/b]
 [list]
-[*]Play as Ellie in Joel's chapters or as Joel in Winter, and [b]Swap Now[/b] to switch. [i]The character swap is experimental.[/i]
+[*][b]Play as Ellie in Joel's chapters[/b] and it actually works: she walks, runs, climbs, aims, shoots and reloads with her own animations.
+[*][b]Crafting works[/b] — Tab opens the crafting menu as Ellie in every chapter, not just Winter.
+[*][b]Pistol grip works[/b] — Joel's 9mm sits straight in her hands with proper recoil.
+[*][b]Replace Campaign Ellie with Joel[/b] (on by default): the story companion becomes Joel — the same companion with her AI and scripted moments, in Joel's body.
+[*]Pick Ellie's outfit or let it match the chapter. [b]Swap Now[/b] switches right away; Play as Joel in Winter is also included.
 [/list]
 [b]Weapons and Items[/b]
 [list]
@@ -42,7 +48,7 @@ Almost everything in the menu is Naughty Dog's own code: the game still contains
 [list]
 [*]Keyboard, mouse and controller; [b]Search[/b] (just start typing) and [b]Favorites[/b] (Tab / X)
 [*]The game gets [b]no input[/b] while the menu is open
-[*]Settings save automatically; Feature Status page shows what loaded
+[*]Settings save automatically to [i]Documents\w1z's menu\w1zsMenu.ini[/i], so updates never reset them; Feature Status page shows what loaded
 [/list]
 
 [size=4][b]Controls[/b][/size]
@@ -57,15 +63,15 @@ Almost everything in the menu is Naughty Dog's own code: the game still contains
 [size=4][b]Installation[/b][/size]
 [b]Fluffy Mod Manager (recommended)[/b]
 [list=1]
-[*]Put [i]w1zsMenu-v1.1.0.zip[/i] in [i]Fluffy Mod Manager\Games\TLOU\Mods\[/i].
+[*]Put [i]w1zsMenu-v1.2.0.zip[/i] in [i]Fluffy Mod Manager\Games\TLOU\Mods\[/i].
 [*]Open Fluffy and tick [b]w1z's menu[/b]. Untick it to uninstall.
 [/list]
 
 [b]Manual[/b]
 [list=1]
-[*]Copy [i]winmm.dll[/i] and [i]w1zsMenu.ini[/i] from the zip into the folder that contains [i]tlou-i.exe[/i]
+[*]Copy [i]winmm.dll[/i] from the zip into the folder that contains [i]tlou-i.exe[/i]
 (e.g. [i]C:\Program Files (x86)\Steam\steamapps\common\The Last of Us Part I\[/i]).
-[*]To uninstall, delete [i]winmm.dll[/i], [i]w1zsMenu.ini[/i], [i]w1zsMenu.log[/i] and [i]w1zsMenu-README.txt[/i] from that folder.
+[*]To uninstall, delete [i]winmm.dll[/i], [i]w1zsMenu.log[/i] and [i]w1zsMenu-README.txt[/i] from that folder.
 [/list]
 Install while the game is closed. No other loader is needed. [i]modinfo.ini[/i] and [i]screenshot.png[/i] in the zip are only for Fluffy.
 
@@ -84,7 +90,7 @@ The menu never writes save files itself. Giving items, weapons, parts, treasures
 
 [size=4][b]Known issues[/b][/size]
 [list]
-[*]The character swap is experimental.
+[*]Playing as Ellie: her arm clips through the bow when it's put away, and the shotgun and hunting rifle twitch in from the right when aiming. The companion Joel speaks Ellie's lines in her voice.
 [*]In [b]Encounters[/b], a weapon's magazine size can change after a restart. This is the game's own behaviour — it also happens with no mods installed.
 [*]Pause While Open is not available yet (the game still gets no input while the menu is open).
 [*]Scene Teleport only offers Replay Current Scene for now.

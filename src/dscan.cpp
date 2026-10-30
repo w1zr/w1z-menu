@@ -1,5 +1,6 @@
 #include "dscan.h"
 
+#include "engine_defs.h"
 #include "scan.h"
 
 #include <algorithm>
@@ -204,6 +205,62 @@ size_t FindFunctionByName(const uint8_t* image, size_t textEnd, size_t imageSize
         return 0;
     }
     return *funcs.begin();
+}
+
+bool FindLevelSetLoader(const uint8_t* image, size_t textEnd, size_t imageSize, LevelSetLoader& out, std::string& error) {
+    const auto names = FindCString(image, imageSize, engine::kLevelSetCommand);
+    if (names.size() != 1) {
+        error = "LoadLevelSet command name found " + std::to_string(names.size()) + " times";
+        return false;
+    }
+    auto rel = [&](size_t disp) { return static_cast<size_t>(static_cast<int64_t>(disp + 4) + Disp(image + disp)); };
+    std::set<size_t> handlers;
+    for (size_t at : scan::FindAll(image, textEnd, scan::Parse(engine::kConsoleRegister)))
+        if (rel(at + 10) == names[0]) handlers.insert(rel(at + 17));
+    if (handlers.size() != 1) {
+        error = "LoadLevelSet command registered " + std::to_string(handlers.size()) + " times";
+        return false;
+    }
+    const size_t handler = *handlers.begin();
+    const auto call = handler + 0x80 < textEnd ? scan::FindAll(image + handler, 0x80, scan::Parse(engine::kSetLevelSetCall))
+                                               : std::vector<size_t>{};
+    if (call.size() != 1) {
+        error = "LoadLevelSet's call to the level manager was not recognised";
+        return false;
+    }
+    const size_t mgr = rel(handler + call[0] + 6), set = rel(handler + call[0] + 14);
+    if (mgr >= imageSize || set + 0x200 > textEnd ||
+        scan::FindAll(image + set, 29, scan::Parse(engine::kSetLevelSetPrologue)).size() != 1) {
+        error = "LevelMgr::SetLevelSet has an unexpected layout";
+        return false;
+    }
+    const auto rebuild = scan::FindAll(image + set, 0x200, scan::Parse(engine::kRebuildWantsCall));
+    const size_t fn = rebuild.size() == 1 ? rel(set + rebuild[0] + 11) : 0;
+    if (!fn || fn + 32 > textEnd || scan::FindAll(image + fn, 28, scan::Parse(engine::kRebuildWantsPrologue)).size() != 1) {
+        error = "the want-load rebuild was not recognised";
+        return false;
+    }
+    out = {mgr, set, fn};
+    return true;
+}
+
+size_t FindEllieCraftFlag(const uint8_t* image, size_t textEnd, size_t imageSize, std::string& error) {
+    const auto level = FindCString(image, imageSize, engine::kEllieCraftLevel);
+    const auto reads = scan::FindAll(image, textEnd, scan::Parse(engine::kEllieCraftFlagRead));
+    if (level.size() != 1 || reads.size() != 1) {
+        error = "crafting check not recognised (" + std::to_string(reads.size()) + " flag reads)";
+        return 0;
+    }
+    bool lakeside = false; // lea r8, ["lakeside"] shortly before
+    for (size_t i = reads[0] >= 0x80 ? reads[0] - 0x80 : 0; i + 7 <= reads[0] && !lakeside; ++i)
+        lakeside = image[i] == 0x4C && image[i + 1] == 0x8D && RipModrm(image[i + 2]) &&
+                   static_cast<size_t>(static_cast<int64_t>(i + 7) + Disp(image + i + 3)) == level[0];
+    const size_t flag = static_cast<size_t>(static_cast<int64_t>(reads[0] + 12) + Disp(image + reads[0] + 8));
+    if (!lakeside || flag >= imageSize) {
+        error = "crafting check has an unexpected layout";
+        return 0;
+    }
+    return flag;
 }
 
 std::vector<size_t> CallbackFlags(const uint8_t* image, size_t func, size_t span, size_t imageSize) {

@@ -2,7 +2,12 @@
 
 ![w1z's menu](package/fluffy/screenshot.png)
 
-**Download:** [Nexus Mods](https://www.nexusmods.com/thelastofuspart1/mods/256) or [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.1.0.zip`.
+**Download:** [Nexus Mods](https://www.nexusmods.com/thelastofuspart1/mods/256) or [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.2.0.zip`.
+
+**New in 1.2.0: a playable Ellie that really works.** Play Joel's chapters
+as Ellie: she moves, aims, shoots and **crafts in every chapter**, **Joel's 9mm
+sits straight in her hands** with proper recoil, and **Joel follows her as the
+AI companion**. See [Playing as Ellie](#playing-as-ellie).
 
 An in-game mod menu for **The Last of Us Part I** (PC). Press **Insert** or
 **F9** (controller: **L3 + R3**) to open it. While it is open the game gets no
@@ -20,7 +25,7 @@ keeps working.
 | Page | Options |
 |---|---|
 | Player | God Mode, No Hit Reactions, Infinite Sprint, Undetectable Player, One Hit Kills |
-| Character (**experimental**) | Play as Ellie in Joel's chapters (outfit matches the chapter, or pick one), Play as Joel in Winter, Swap Now |
+| Character | **Play as Ellie in Joel's chapters — and it works:** she moves, aims, shoots, reloads and crafts; **crafting works in every chapter** and **Joel's 9mm grip is correct** (straight, with proper recoil). **Replace Campaign Ellie with Joel** (the story companion becomes Joel while you play Ellie). Outfit matches the chapter, or pick one. Play as Joel in Winter, Swap Now |
 | Weapons and Items | Infinite Ammo (normal reloads, F7), No Reload (player only, F8), infinity sign on the HUD, Infinite Weapon Health, Disable Weapon Sway, Disable Auto Reload, Disable Auto Holster, Drop All Weapons, Give Joel (9 guns), Give Ellie (3), Give Melee (6), Give Items (throwables, health kits, crafting materials), Infinite Crafting, Infinite Craftables |
 | Inventory | Give All + Upgrades, Give Each Craftable, Weapon Parts x10 / x100, Pills x10 / x100, All Recipes, No Recipes |
 | Camera | Manual Camera, Teleport Player To Camera, Hide HUD |
@@ -30,6 +35,22 @@ keeps working.
 | Settings | Remember toggles, notifications, hotkey sound, menu size, feature status page |
 
 Plus **Search** (just start typing) and **Favorites** (Tab / X on any option).
+
+## Playing as Ellie
+
+1. Load a chapter (or Encounter) as Joel and open the menu.
+2. **Character > Play as Ellie**, then **Swap Now**. The menu streams in
+   Ellie's animations (a few seconds) and restarts from your last checkpoint as
+   Ellie.
+3. Play: Ellie walks, runs, climbs, aims, shoots and reloads with her own
+   animations, **crafting opens with Tab in every chapter** (not just Winter),
+   and **Joel's 9mm is held straight** and recoils normally.
+4. **Replace Campaign Ellie with Joel** (on by default): the story companion
+   becomes Joel — the same companion with her AI and scripted moments, in
+   Joel's body. Turn it off to keep Ellie as the companion.
+
+To go back to Joel, turn Play as Ellie off and press Swap Now.
+**Settings > Remember Character Swap** keeps it on for the next launch.
 
 ## Controls
 
@@ -52,21 +73,22 @@ Plus **Search** (just start typing) and **Favorites** (Tab / X on any option).
 
 ## Install with Fluffy Mod Manager (recommended)
 
-1. Put `w1zsMenu-v1.1.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
+1. Put `w1zsMenu-v1.2.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
 2. In Fluffy, choose The Last of Us Part I and tick **w1z's menu**.
 3. Start the game.
 
 ## Install manually
 
-Copy `winmm.dll` and `w1zsMenu.ini` from the zip into the game folder (the
-one with `tlou-i.exe`). No other loader is needed: the game loads `winmm.dll`
+Copy `winmm.dll` from the zip into the game folder (the one with
+`tlou-i.exe`). No other loader is needed: the game loads `winmm.dll`
 from its own folder, and the menu forwards every `winmm.dll` function to the
 real Windows DLL.
 
 ## Uninstall
 
-Untick it in Fluffy, or delete `winmm.dll`, `w1zsMenu.ini`, `w1zsMenu.log`
-and `w1zsMenu-README.txt` from the game folder.
+Untick it in Fluffy, or delete `winmm.dll`, `w1zsMenu.log` and
+`w1zsMenu-README.txt` from the game folder. Settings stay in
+`Documents\w1z's menu\`; delete that folder too to remove them.
 
 ## Saves
 
@@ -98,13 +120,17 @@ Extras unlocks only last while the menu is loaded.
 - **Scene Teleport** only offers Replay Current Scene; jumping to other chapters
   is not in this version.
 - **Game Speed** is experimental.
-- **The character swap (Play as Ellie / Swap Now) is experimental.** To go back, turn it off and use Pause > Restart Checkpoint.
+- **Playing as Ellie:** her arm clips through the bow when it's put away, and
+  the shotgun and hunting rifle twitch in from the right when aiming (game
+  animations made for Joel). The companion Joel speaks Ellie's lines in her
+  voice. Play as Joel in Winter has had less testing.
 - Steam achievement unlock/clear is intentionally not included (it changes your
   Steam account).
 
 ## Settings (`w1zsMenu.ini`)
 
-The menu saves changes automatically. The `[InfiniteAmmo]` section uses the same
+The menu saves changes automatically to `Documents\w1z's menu\w1zsMenu.ini`
+(since 1.2.0; an older `w1zsMenu.ini` in the game folder is copied there once). The `[InfiniteAmmo]` section uses the same
 keys as the TLOU Infinite Ammo mod; if `w1zsMenu.ini` does not exist yet and
 `TLOUInfiniteAmmo.ini` does, its values are imported once.
 
@@ -113,6 +139,8 @@ keys as the TLOU Infinite Ammo mod; if `w1zsMenu.ini` does not exist yet and
 | `[Menu] MenuKey` / `MenuKey2` | 45 (Insert) / 120 (F9) | Virtual-key codes, 0 = off |
 | `[Menu] ControllerToggle` | 1 | L3 + R3 opens the menu |
 | `[Menu] RememberToggles` | 1 | Toggles are restored next launch |
+| `[Menu] RememberSwap` | 0 | Play as Ellie / Joel stay on next launch |
+| `[Engine] ReplaceEllieWithJoel` | 1 | The companion becomes Joel while you play Ellie |
 | `[Menu] Scale` | 100 | Menu size in percent |
 | `[Menu] Notifications` | 1 | On-screen message for hotkey toggles |
 | `[InfiniteAmmo] InfiniteAmmo` / `NoReload` / `ShowInfinitySign` | 1 / 0 / 1 | As in TLOU Infinite Ammo |

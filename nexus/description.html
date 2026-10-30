@@ -1,4 +1,5 @@
 <h2>w1z's menu</h2>
+<p><strong>New in 1.2.0: a playable Ellie that really works</strong> — Ellie moves, aims, shoots and <strong>crafts in every chapter</strong>, <strong>Joel's 9mm grip is correct</strong>, and <strong>Joel follows her as the AI companion</strong>.</p>
 <p>An in-game mod menu for <strong>The Last of Us Part I</strong>. Press <strong>Insert</strong> or <strong>F9</strong> (controller: <strong>L3 + R3</strong>) and change the player, weapons, inventory, outfits, camera and more while you play. <strong>You don't need to finish the game first.</strong></p>
 <p>Almost everything in the menu is Naughty Dog's own code: the game still contains the studio's developer menu, and w1z's menu uses its flags and functions directly instead of poking random memory. Anything the menu can't find in your version of the game is greyed out with the reason — everything else keeps working.</p>
 <h3>Features</h3>
@@ -6,9 +7,13 @@
 <ul>
 <li>God Mode, No Hit Reactions, Infinite Sprint, Undetectable Player, One Hit Kills</li>
 </ul>
-<p><strong>Character (experimental)</strong></p>
+<p><strong>Character — Playable Ellie that really works (new in 1.2.0)</strong></p>
 <ul>
-<li>Play as Ellie in Joel's chapters or as Joel in Winter, and <strong>Swap Now</strong> to switch. <em>The character swap is experimental.</em></li>
+<li><strong>Play as Ellie in Joel's chapters</strong> and it actually works: she walks, runs, climbs, aims, shoots and reloads with her own animations.</li>
+<li><strong>Crafting works</strong> — Tab opens the crafting menu as Ellie in every chapter, not just Winter.</li>
+<li><strong>Pistol grip works</strong> — Joel's 9mm sits straight in her hands with proper recoil.</li>
+<li><strong>Replace Campaign Ellie with Joel</strong> (on by default): the story companion becomes Joel — the same companion with her AI and scripted moments, in Joel's body.</li>
+<li>Pick Ellie's outfit or let it match the chapter. <strong>Swap Now</strong> switches right away; Play as Joel in Winter is also included.</li>
 </ul>
 <p><strong>Weapons and Items</strong></p>
 <ul>
@@ -39,7 +44,7 @@
 <ul>
 <li>Keyboard, mouse and controller; <strong>Search</strong> (just start typing) and <strong>Favorites</strong> (Tab / X)</li>
 <li>The game gets <strong>no input</strong> while the menu is open</li>
-<li>Settings save automatically; Feature Status page shows what loaded</li>
+<li>Settings save automatically to <em>Documents\w1z's menu\w1zsMenu.ini</em>, so updates never reset them; Feature Status page shows what loaded</li>
 </ul>
 <h3>Controls</h3>
 <ul>
@@ -52,13 +57,13 @@
 <h3>Installation</h3>
 <p><strong>Fluffy Mod Manager (recommended)</strong></p>
 <ol>
-<li>Put <em>w1zsMenu-v1.1.0.zip</em> in <em>Fluffy Mod Manager\Games\TLOU\Mods\</em>.</li>
+<li>Put <em>w1zsMenu-v1.2.0.zip</em> in <em>Fluffy Mod Manager\Games\TLOU\Mods\</em>.</li>
 <li>Open Fluffy and tick <strong>w1z's menu</strong>. Untick it to uninstall.</li>
 </ol>
 <p><strong>Manual</strong></p>
 <ol>
-<li>Copy <em>winmm.dll</em> and <em>w1zsMenu.ini</em> from the zip into the folder that contains <em>tlou-i.exe</em><br>(e.g. <em>C:\Program Files (x86)\Steam\steamapps\common\The Last of Us Part I\</em>).</li>
-<li>To uninstall, delete <em>winmm.dll</em>, <em>w1zsMenu.ini</em>, <em>w1zsMenu.log</em> and <em>w1zsMenu-README.txt</em> from that folder.</li>
+<li>Copy <em>winmm.dll</em> from the zip into the folder that contains <em>tlou-i.exe</em><br>(e.g. <em>C:\Program Files (x86)\Steam\steamapps\common\The Last of Us Part I\</em>).</li>
+<li>To uninstall, delete <em>winmm.dll</em>, <em>w1zsMenu.log</em> and <em>w1zsMenu-README.txt</em> from that folder.</li>
 </ol>
 <p>Install while the game is closed. No other loader is needed. <em>modinfo.ini</em> and <em>screenshot.png</em> in the zip are only for Fluffy.</p>
 <h3>Compatibility</h3>
@@ -74,7 +79,7 @@
 <p>The menu never writes save files itself. Giving items, weapons, parts, treasures or journal pages changes your current game, and the game saves that at its next checkpoint like any other change.</p>
 <h3>Known issues</h3>
 <ul>
-<li>The character swap is experimental.</li>
+<li>Playing as Ellie: her arm clips through the bow when it's put away, and the shotgun and hunting rifle twitch in from the right when aiming. The companion Joel speaks Ellie's lines in her voice.</li>
 <li>In <strong>Encounters</strong>, a weapon's magazine size can change after a restart. This is the game's own behaviour — it also happens with no mods installed.</li>
 <li>Pause While Open is not available yet (the game still gets no input while the menu is open).</li>
 <li>Scene Teleport only offers Replay Current Scene for now.</li>
