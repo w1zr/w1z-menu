@@ -276,4 +276,28 @@ std::vector<size_t> CallbackFlags(const uint8_t* image, size_t func, size_t span
     return out;
 }
 
+size_t FindScriptNative(const uint8_t* image, size_t textEnd, size_t imageSize, const char* name, std::string& error) {
+    const auto names = FindCString(image, imageSize, name);
+    if (names.size() != 1) {
+        error = std::string("script function name \"") + name + "\" not found once";
+        return 0;
+    }
+    auto rel = [&](size_t disp) {
+        int32_t r;
+        std::memcpy(&r, image + disp, 4);
+        return static_cast<size_t>(static_cast<int64_t>(disp) + 4 + r);
+    };
+    size_t found = 0, count = 0;
+    for (size_t at : scan::FindAll(image, textEnd, scan::Parse(engine::kScriptFuncRegister))) {
+        if (rel(at + 7) != names[0]) continue;
+        found = rel(at + 14);
+        ++count;
+    }
+    if (count != 1 || found >= textEnd) {
+        error = std::string("script function \"") + name + "\" registered " + std::to_string(count) + " times";
+        return 0;
+    }
+    return found;
+}
+
 } // namespace dscan

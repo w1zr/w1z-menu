@@ -43,7 +43,8 @@ struct Page {
 
 enum PageId {
     kHome, kSearch, kFavorites, kPlayer, kCharacter, kWeapons, kGiveJoel, kGiveEllie, kGiveMelee, kGiveItems,
-    kInventory, kCamera, kUnlocks, kScenes, kMisc, kSettings, kStatus, kPageCount
+    kInventory, kCamera, kUnlocks, kScenes, kMisc, kSettings, kStatus, kUpgrades, kUpgradeFirst,
+    kPageCount = kUpgradeFirst + static_cast<int>(sizeof(engine::kUpgradeWeapons) / sizeof(engine::kUpgradeWeapons[0]))
 };
 std::vector<Page> g_pages;
 
@@ -616,13 +617,30 @@ void BuildPages() {
     g_pages[kWeapons] = {"Weapons and Items",
                          {Header("WEAPONS"), Feat("InfiniteAmmo"), Feat("NoReload"), Feat("ShowInfinitySign"),
                           Feat("InfiniteWeaponHealth"), Feat("NoWeaponSway"), Feat("NoAutoReload"), Feat("NoAutoHolster"),
-                          Feat("DropAllWeapons"), Link("Give Joel", kGiveJoel, "Joel's guns."),
+                          Feat("DropAllWeapons"), Link("Weapon Upgrades", kUpgrades, "Add one upgrade to a gun, e.g. a scope on the hunting rifle."),
+                          Link("Give Joel", kGiveJoel, "Joel's guns."),
                           Link("Give Ellie", kGiveEllie, "Ellie's weapons."), Link("Give Melee", kGiveMelee, "Melee weapons."),
                           Link("Give Items", kGiveItems, "Shivs, health kits, bombs and throwables."), Header("ITEMS"),
                           Feat("InfiniteCrafting"), Feat("InfiniteCraftables")}};
     for (const auto& g : engine::kGives) {
         const int page = g.group == 0 ? kGiveJoel : g.group == 1 ? kGiveEllie : g.group == 2 ? kGiveMelee : kGiveItems;
         g_pages[page].items.push_back(Feat(g.id));
+    }
+    g_pages[kUpgrades].title = "Weapon Upgrades";
+    for (int i = 0; i < kPageCount - kUpgradeFirst; ++i) {
+        const auto& w = engine::kUpgradeWeapons[i];
+        g_pages[kUpgrades].items.push_back(Link(w.label, kUpgradeFirst + i, "Pick one upgrade to add to this gun."));
+        Page& pg = g_pages[kUpgradeFirst + i];
+        pg.title = w.label;
+        for (const char* p = w.bundles; *p;) {
+            while (*p == ' ') ++p;
+            const char* e = p;
+            while (*e && *e != ' ') ++e;
+            if (e > p) pg.items.push_back(Feat((std::string("Upg_") + w.id + "_" + std::string(p, e)).c_str()));
+            p = e;
+        }
+        pg.items.push_back(Header("REMOVE"));
+        pg.items.push_back(Feat((std::string("Upg_") + w.id + "_RemoveAll").c_str()));
     }
     g_pages[kGiveJoel].title = "Give Joel";
     g_pages[kGiveEllie].title = "Give Ellie";

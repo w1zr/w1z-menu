@@ -580,6 +580,15 @@ bool PlayerPresent() {
     return p != nullptr;
 }
 
+void* Player() {
+    if (!g_playerLookup) return nullptr;
+    __try {
+        return g_playerLookup(g_playerHandle);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return nullptr;
+    }
+}
+
 bool CallDevCallback(DevCallback cb, uint64_t data, int message, bool* result) {
     return RunCallback(reinterpret_cast<Callback>(cb), data, message, result);
 }

@@ -11,6 +11,7 @@
 #include "proxy_winmm.h"
 #include "render.h"
 #include "settings.h"
+#include "upgrades.h"
 #include "version.h"
 
 #include "../third_party/minhook/include/MinHook.h"
@@ -38,6 +39,7 @@ DWORD WINAPI Startup(LPVOID) {
 #if W1Z_CHARACTER_SWAP
     character::Register();
 #endif
+    upgrades::Register();
     pause::Init();
     menu::Init();
 
@@ -56,6 +58,7 @@ DWORD WINAPI Startup(LPVOID) {
 #if W1Z_CHARACTER_SWAP
         character::Init();
 #endif
+        upgrades::Init();
     }
     else logx::Write("engine features stay off: MinHook is not available");
     hotkeys::Start(); // after ammo::Init: F7/F8 are only registered when the ammo features loaded

@@ -1,3 +1,19 @@
+# Test report — w1z's menu 1.3.0 (2026-10-31)
+
+Tested as the test build `release/test/w1zsMenu-test-2026-10-31-weapon-upgrades.zip` (1.2.0 + Weapon Upgrades),
+installed through Fluffy; 1.3.0 is the same code with the version and texts changed. Offline: `scan_test` finds `player-weapon-upgrade-apply-bundle` and `-remove-bundle`
+on `tlou-i.exe` and `tlou-i-l.exe`; `proxy_test` passes.
+
+| Test | Result |
+|---|---|
+| Hunting Rifle: Scope, Magazine Capacity, Reload Speed, Damage, Penetration | **Pass** (owner: "it works"; log: every bundle accepted) |
+| Shotgun: Magazine Capacity 1-4, Fire Rate 1-3, Reload Speed 1-3, Less Recoil 1-2 | **Pass** (log: every bundle accepted) |
+| 9mm: Magazine Capacity 1-4, Fire Rate 1-3, Reload Speed 1-3 | **Pass** (log: every bundle accepted) |
+| Higher level adds the lower levels first | **Pass** (log) |
+| Remove All Upgrades | Not tested |
+| Other guns (Revolver, El Diablo, Shorty, Semi-Auto, bows, Flamethrower, holsters) | Not tested |
+| Upgrades kept after a checkpoint reload | Not tested |
+
 # Test report — w1z's menu 1.2.0 (2026-10-30)
 
 Steam `tlou-i.exe` 1.1.4.0 (build 18995818), Windows 11. In-game tests by the

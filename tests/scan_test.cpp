@@ -321,6 +321,18 @@ static void TestEngine(const char* path) {
                       "player package lists: 49 for Ellie, 30 for Joel");
     }
 
+    // Weapon upgrades: the apply / remove bundle natives, each found once from
+    // its script-function name, with the expected start.
+    {
+        std::string uerr;
+        const size_t ua = dscan::FindScriptNative(b, textEnd, image.size(), engine::kUpgradeApplyName, uerr);
+        const size_t ur = dscan::FindScriptNative(b, textEnd, image.size(), engine::kUpgradeRemoveName, uerr);
+        CHECK(ua && scan::FindAll(b + ua, 0x30, scan::Parse(engine::kUpgradeApplyStart)) == std::vector<size_t>{0},
+              "upgrade apply-bundle native found (0x%zX) %s", ua, uerr.c_str());
+        CHECK(ur && scan::FindAll(b + ur, 0x30, scan::Parse(engine::kUpgradeRemoveStart)) == std::vector<size_t>{0},
+              "upgrade remove-bundle native found (0x%zX) %s", ur, uerr.c_str());
+    }
+
     // Skins (from the TLOU Outfit Changer): every site found, and both menu
     // reads are reads of the Extras flag, so Unlock All Extras patches the other 31.
     {

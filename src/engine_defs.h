@@ -274,4 +274,50 @@ inline const int kEllieNoBackpack[] = {1, 2, 3, 8};
 inline const int kJoelOutfits[] = {1, 2, 3, 4, 5, 7, 14, 15, 16};
 inline const int kJoelNoBackpack[] = {2, 4, 14, 15, 16};
 
+
+// Weapon upgrades. The script functions player-weapon-upgrade-apply-bundle /
+// -remove-bundle take (player, weapon id, bundle id): the weapon in the
+// inventory gets the bundle, or it is kept for when the player picks it up.
+// Bundle names per weapon come from the game's *weapon-upgrade-bundles* map
+// (dc1/weapon-upgrades.bin). A "-N" bundle is applied with its lower levels.
+inline const char* kUpgradeApplyName = "player-weapon-upgrade-apply-bundle";
+inline const char* kUpgradeRemoveName = "player-weapon-upgrade-remove-bundle";
+inline const char* kUpgradeApplyStart =
+    "48 85 C9 0F 84 ?? ?? ?? ?? 4C 8B DC 49 89 5B 08 49 89 6B 10 49 89 73 18 57 48 83 EC 30 48 8B F1 49 8B F8 "
+    "48 8B 89 F8 2F 00 00";
+inline const char* kUpgradeRemoveStart =
+    "48 85 C9 0F 84 ?? ?? ?? ?? 48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 30 48 8B 89 F8 2F 00 00";
+
+struct UpgradeWeapon {
+    const char* id;       // menu id part
+    const char* label;    // menu page title
+    const char* weapon;   // weapon id
+    const char* bundles;  // space-separated bundle ids, in menu order
+};
+inline const UpgradeWeapon kUpgradeWeapons[] = {
+    {"9mm", "9mm Pistol", "t1x-pistol-9mm",
+     "clip-capacity-1 clip-capacity-2 clip-capacity-3 clip-capacity-4 fire-rate-1 fire-rate-2 fire-rate-3 "
+     "reload-speed-1 reload-speed-2 reload-speed-3"},
+    {"Revolver", "Revolver", "t1x-pistol-revolver",
+     "fire-rate-1 fire-rate-2 fire-rate-3 reload-speed-1 reload-speed-2 reload-speed-3"},
+    {"ElDiablo", "El Diablo", "t1x-pistol-uber",
+     "clip-capacity-1 clip-capacity-2 fire-rate-1 fire-rate-2 fire-rate-3 reload-speed-1 reload-speed-2 "
+     "penetration-1 penetration-2"},
+    {"Shorty", "Shorty", "t1x-pistol-shotgun",
+     "clip-capacity-1 clip-capacity-2 clip-capacity-3 clip-capacity-4 fire-rate-1 fire-rate-2 fire-rate-3 "
+     "reload-speed-1 reload-speed-2 recoil-1 recoil-2 spread-1 spread-2 spread-3 spread-4"},
+    {"Shotgun", "Shotgun", "t1x-shotgun-pump",
+     "clip-capacity-1 clip-capacity-2 clip-capacity-3 clip-capacity-4 fire-rate-1 fire-rate-2 fire-rate-3 "
+     "reload-speed-1 reload-speed-2 reload-speed-3 recoil-1 recoil-2 range-1 range-2"},
+    {"HuntingRifle", "Hunting Rifle", "t1x-rifle-bolt",
+     "scope-1 scope-2 clip-capacity-1 clip-capacity-2 reload-speed-1 reload-speed-2 damage-1 penetration-1 penetration-2"},
+    {"SemiAuto", "Semi-Auto Rifle", "t1x-rifle-sub-mounted", "zoom-2"},
+    {"Bow", "Bow", "t1x-bow",
+     "rangefinder arrow-explosive drawspeed-1 drawspeed-2 drawspeed-3 range-1 range-2 range-3 reload-speed-1"},
+    {"EllieBow", "Ellie's Bow", "t1x-bow-ellie", "rangefinder arrow-explosive range-bow-ellie"},
+    {"Flamethrower", "Flamethrower", "t1x-flamethrower", "damage-1 range-1 reload-speed-1 reload-speed-2"},
+    {"ShortHolster", "Short-Gun Holster", "t1x-holsters-shortgun", "short-gun-second-holster"},
+    {"LongHolster", "Long-Gun Holster", "t1x-holsters-longgun", "long-gun-second-holster"},
+};
+
 } // namespace engine

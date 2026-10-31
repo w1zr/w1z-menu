@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0 — 2026-10-31
+
+### Added
+
+- **Weapons and Items > Weapon Upgrades**: add one specific upgrade to a gun,
+  e.g. a scope on the hunting rifle or a bigger magazine on the 9mm, or take a
+  gun's upgrades off. Uses the game's own `player-weapon-upgrade-apply-bundle`
+  / `-remove-bundle` functions, found by signature; a higher level adds the
+  levels below it first. Covers the 9mm, Revolver, El Diablo, Shorty, Shotgun,
+  Hunting Rifle, Semi-Auto Rifle, both bows, Flamethrower and the holsters.
+  Tested in game on the hunting rifle, shotgun and 9mm.
+
 ## 1.2.0 — 2026-10-30
 
 **Playable Ellie that actually works.** In Joel's chapters Ellie now moves,

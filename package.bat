@@ -4,7 +4,7 @@ rem from build\winmm.dll and the files in packageluffy. Settings are not shippe
 rem the menu keeps them in Documents\w1z's menu, so updates never reset them.
 rem Run build.bat first.
 setlocal
-set VERSION=1.2.0
+set VERSION=1.3.0
 cd /d "%~dp0"
 if not exist build\winmm.dll (
   echo build\winmm.dll not found. Run build.bat first.

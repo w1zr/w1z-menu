@@ -26,4 +26,6 @@ void AddTickHandler(std::function<void()> fn);
 bool CallDevCallback(DevCallback cb, uint64_t data, int message, bool* result = nullptr);
 // True when a player exists (in gameplay, not on the main menu). Game thread.
 bool PlayerPresent();
+// The player object (nullptr when there is none). Game thread.
+void* Player();
 } // namespace engine

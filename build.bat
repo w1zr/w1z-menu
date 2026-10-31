@@ -21,7 +21,7 @@ set CFLAGS=%COMMON% /std:c++17 /W4 /WX /EHa /DIMGUI_DISABLE_OBSOLETE_FUNCTIONS /
 set TPFLAGS=%COMMON% /W3 /EHa /DIMGUI_DISABLE_OBSOLETE_FUNCTIONS /Ithird_party\imgui
 
 set SRC=src\dllmain.cpp src\ammo.cpp src\game.cpp src\scan.cpp src\settings.cpp src\features.cpp src\log.cpp ^
- src\proxy_winmm.cpp src\dscan.cpp src\engine.cpp src\skins.cpp src\skinscan.cpp src\character.cpp src\render.cpp src\input.cpp src\hotkeys.cpp src\menu.cpp src\pause.cpp
+ src\proxy_winmm.cpp src\dscan.cpp src\engine.cpp src\skins.cpp src\skinscan.cpp src\character.cpp src\upgrades.cpp src\render.cpp src\input.cpp src\hotkeys.cpp src\menu.cpp src\pause.cpp
 set IMGUI=third_party\imgui\imgui.cpp third_party\imgui\imgui_draw.cpp third_party\imgui\imgui_tables.cpp ^
  third_party\imgui\imgui_widgets.cpp third_party\imgui\backends\imgui_impl_dx12.cpp
 set MINHOOK=third_party\minhook\src\buffer.c third_party\minhook\src\hook.c third_party\minhook\src\trampoline.c ^

@@ -1,5 +1,5 @@
 #pragma once
-#define MENU_VERSION "1.2.0"
+#define MENU_VERSION "1.3.0"
 
 // Joel/Ellie character swap (src/character.cpp): Play as Ellie in Joel's
 // chapters (her animations streamed in, crafting, the 9mm hold, Joel as the

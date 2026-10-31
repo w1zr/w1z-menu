@@ -99,6 +99,11 @@ bool FindLevelSetLoader(const uint8_t* image, size_t textEnd, size_t imageSize, 
 // (patterns in engine_defs.h). Returns its RVA, or 0 (and error).
 size_t FindEllieCraftFlag(const uint8_t* image, size_t textEnd, size_t imageSize, std::string& error);
 
+// The native function behind a script function, from its registration stub
+// (kScriptFuncRegister: sub rsp,28h; lea r8,[name]; lea rdx,[native]; lea rcx,[table]).
+// Exactly one stub must name `name`. Returns the native's RVA, or 0 (and error).
+size_t FindScriptNative(const uint8_t* image, size_t textEnd, size_t imageSize, const char* name, std::string& error);
+
 // Rip-relative byte compares at the start of a callback, e.g. Undetectable
 // Player's three flags: every `cmp byte ptr [rip+x], r8` in the first `span`
 // bytes of `func`, in order.

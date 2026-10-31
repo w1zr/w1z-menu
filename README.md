@@ -2,9 +2,13 @@
 
 ![w1z's menu](package/fluffy/screenshot.png)
 
-**Download:** [Nexus Mods](https://www.nexusmods.com/thelastofuspart1/mods/256) or [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.2.0.zip`.
+**Download:** [Nexus Mods](https://www.nexusmods.com/thelastofuspart1/mods/256) or [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.3.0.zip`.
 
-**New in 1.2.0: a playable Ellie that really works.** Play Joel's chapters
+**New in 1.3.0: Weapon Upgrades.** Add one specific upgrade to any gun, such as a
+scope on the hunting rifle or a bigger magazine on the 9mm, from Weapons and
+Items > Weapon Upgrades.
+
+**Since 1.2.0: a playable Ellie that really works.** Play Joel's chapters
 as Ellie: she moves, aims, shoots and **crafts in every chapter**, **Joel's 9mm
 sits straight in her hands** with proper recoil, and **Joel follows her as the
 AI companion**. See [Playing as Ellie](#playing-as-ellie).
@@ -26,7 +30,7 @@ keeps working.
 |---|---|
 | Player | God Mode, No Hit Reactions, Infinite Sprint, Undetectable Player, One Hit Kills |
 | Character | **Play as Ellie in Joel's chapters — and it works:** she moves, aims, shoots, reloads and crafts; **crafting works in every chapter** and **Joel's 9mm grip is correct** (straight, with proper recoil). **Replace Campaign Ellie with Joel** (the story companion becomes Joel while you play Ellie). Outfit matches the chapter, or pick one. Play as Joel in Winter, Swap Now |
-| Weapons and Items | Infinite Ammo (normal reloads, F7), No Reload (player only, F8), infinity sign on the HUD, Infinite Weapon Health, Disable Weapon Sway, Disable Auto Reload, Disable Auto Holster, Drop All Weapons, Give Joel (9 guns), Give Ellie (3), Give Melee (6), Give Items (throwables, health kits, crafting materials), Infinite Crafting, Infinite Craftables |
+| Weapons and Items | Infinite Ammo (normal reloads, F7), No Reload (player only, F8), infinity sign on the HUD, Infinite Weapon Health, Disable Weapon Sway, Disable Auto Reload, Disable Auto Holster, Drop All Weapons, **Weapon Upgrades** (pick one upgrade for the 9mm, Revolver, El Diablo, Shorty, Shotgun, Hunting Rifle, Semi-Auto Rifle, both bows, Flamethrower or a holster; higher levels add the lower ones; Remove All Upgrades per gun), Give Joel (9 guns), Give Ellie (3), Give Melee (6), Give Items (throwables, health kits, crafting materials), Infinite Crafting, Infinite Craftables |
 | Inventory | Give All + Upgrades, Give Each Craftable, Weapon Parts x10 / x100, Pills x10 / x100, All Recipes, No Recipes |
 | Camera | Manual Camera, Teleport Player To Camera, Hide HUD |
 | Unlocks | Give / Remove Treasures, Give Journal Pages, Reset Journal, **Unlock Skins** (change outfits in-game from Pause > Skins without finishing the story), All Chapters / Encounters / Extras while the menu is loaded |
@@ -73,7 +77,7 @@ To go back to Joel, turn Play as Ellie off and press Swap Now.
 
 ## Install with Fluffy Mod Manager (recommended)
 
-1. Put `w1zsMenu-v1.2.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
+1. Put `w1zsMenu-v1.3.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
 2. In Fluffy, choose The Last of Us Part I and tick **w1z's menu**.
 3. Start the game.
 
