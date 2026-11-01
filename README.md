@@ -112,6 +112,10 @@ Extras unlocks only last while the menu is loaded.
   skins and the menu's skin option is greyed out. The menu includes it too.
 - **Fluffy asset mods** (outfits, textures): compatible; the menu changes no
   game files.
+- **Mac / CrossOver (not tested):** if the menu doesn't open, CrossOver is
+  probably using its own `winmm.dll`. In the bottle's Wine Configuration >
+  Libraries, add `winmm` and set it to **Native then Builtin**. If it still
+  doesn't open, please send `w1zsMenu.log` from the game folder.
 
 ## Known issues
 
