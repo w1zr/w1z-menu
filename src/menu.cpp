@@ -613,7 +613,7 @@ void BuildPages() {
                         {Feat("GodMode"), Feat("NoHitReactions"), Feat("InfiniteSprint"), Feat("Undetectable"), Feat("OneHitKills")}};
     g_pages[kCharacter] = {"Character",
                            {Header("CHARACTER SWAP"), Feat("PlayAsEllie"), Feat("PlayAsJoel"), Feat("SwapNow"),
-                            Header("OPTIONS"), Feat("ReplaceEllieWithJoel"), Feat("EllieOutfit"), Feat("SwapGivesRecipes")}};
+                            Header("OPTIONS"), Feat("ReplaceEllieWithJoel"), Feat("BowOnBack"), Feat("EllieOutfit"), Feat("SwapGivesRecipes")}};
     g_pages[kWeapons] = {"Weapons and Items",
                          {Header("WEAPONS"), Feat("InfiniteAmmo"), Feat("NoReload"), Feat("ShowInfinitySign"),
                           Feat("InfiniteWeaponHealth"), Feat("NoWeaponSway"), Feat("NoAutoReload"), Feat("NoAutoHolster"),

@@ -317,6 +317,15 @@ static void TestEngine(const char* path) {
         CHECK(craftFlag != 0, "Ellie crafting flag 0x%zX %s", craftFlag, cerr2.c_str());
         const auto look = scan::FindAll(b, textEnd, scan::Parse(engine::kLookResolve));
         CHECK(look.size() == 1, "look resolver found once (%zu matches, 0x%zX)", look.size(), look.empty() ? 0 : look[0]);
+        for (int k = 0; k < 2 && look.size() == 1; ++k) {
+            const char* pat = k ? engine::kLevelLookCall : engine::kSkinLookCall;
+            const size_t at = k ? engine::kLevelLookCallAt : engine::kSkinLookCallAt;
+            const auto m = scan::FindAll(b, textEnd, scan::Parse(pat));
+            int32_t callRel = 0;
+            if (m.size() == 1) std::memcpy(&callRel, b + m[0] + at + 1, 4);
+            CHECK(m.size() == 1 && m[0] + at + 5 + callRel == look[0], "%s look call found once and calls the look resolver (%zu matches)",
+                  k ? "level-load" : "Skins menu", m.size());
+        }
         static_assert(sizeof(engine::kEllieOnlyPackages) / sizeof(char*) == 49 && sizeof(engine::kJoelOnlyPackages) / sizeof(char*) == 30,
                       "player package lists: 49 for Ellie, 30 for Joel");
     }

@@ -2,9 +2,13 @@
 
 ![w1z's menu](package/fluffy/screenshot.png)
 
-**Download:** [Nexus Mods](https://www.nexusmods.com/thelastofuspart1/mods/256) or [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.3.0.zip`.
+**Download:** [Nexus Mods](https://www.nexusmods.com/thelastofuspart1/mods/256) or [GitHub Releases](https://github.com/w1zr/w1z-menu/releases) — get `w1zsMenu-v1.4.0.zip`.
 
-**New in 1.3.0: Weapon Upgrades.** Add one specific upgrade to any gun, such as a
+**New in 1.4.0: Playable Ellie fixes.** Ellie's whole body shows on every PC, the
+companion Joel is always visible, Extras > Skins works while you play as Ellie,
+her bow sits vertically on her back, and Swap Now is faster.
+
+**Since 1.3.0: Weapon Upgrades.** Add one specific upgrade to any gun, such as a
 scope on the hunting rifle or a bigger magazine on the 9mm, from Weapons and
 Items > Weapon Upgrades.
 
@@ -51,7 +55,14 @@ Plus **Search** (just start typing) and **Favorites** (Tab / X on any option).
    and **Joel's 9mm is held straight** and recoils normally.
 4. **Replace Campaign Ellie with Joel** (on by default): the story companion
    becomes Joel — the same companion with her AI and scripted moments, in
-   Joel's body. Turn it off to keep Ellie as the companion.
+   Joel's body and the outfit Joel wears in that chapter. Turn it off to keep
+   Ellie as the companion.
+5. **Ellie's Outfit 0** (default) dresses her in the outfit the chapter's own
+   Ellie wears, which the level always loads, so her whole body shows. A fixed
+   outfit (1-11) also loads its body parts with the swap.
+6. **Bow On Ellie's Back** (on by default): Joel's bow sits vertically on her
+   back instead of across her backpack.
+7. **Extras > Skins** works while you play as Ellie: the previews show Ellie.
 
 To go back to Joel, turn Play as Ellie off and press Swap Now.
 **Settings > Remember Character Swap** keeps it on for the next launch.
@@ -77,7 +88,7 @@ To go back to Joel, turn Play as Ellie off and press Swap Now.
 
 ## Install with Fluffy Mod Manager (recommended)
 
-1. Put `w1zsMenu-v1.3.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
+1. Put `w1zsMenu-v1.4.0.zip` in `Fluffy Mod Manager\Games\TLOU\Mods\`.
 2. In Fluffy, choose The Last of Us Part I and tick **w1z's menu**.
 3. Start the game.
 

@@ -1,3 +1,16 @@
+# Test report — w1z's menu 1.4.0 (2026-11-01)
+
+Tested as `release/test/w1zsMenu-test-2026-11-01-playable-ellie-fixes.zip`, installed through Fluffy; 1.4.0 is the
+same code with the version and texts changed. Offline: `scan_test` passes on `tlou-i.exe` and `tlou-i-l.exe` (new:
+Skins menu and level-load look calls found once, each calling the look resolver); `proxy_test` passes.
+
+| Test | Result |
+|---|---|
+| Extras > Skins while playing as Ellie (crashed in 1.3.0: crash dump, game assert at tlou-i.exe+0x2313F93) | **Pass** (owner: "That worked") |
+| Ellie's full body with Ellie's Outfit 0; companion Joel visible | Tested in Playable Ellie (WORKING) 1.1 by its players (same code); owner played this build as Ellie |
+| Bow On Ellie's Back | Tested in Playable Ellie (WORKING) and live in the menu (2026-10-30); not separately re-tested in this build |
+| Swap Now while a swap's restart runs: "Still swapping" | Not tested |
+
 # Test report — w1z's menu 1.3.0 (2026-10-31)
 
 Tested as the test build `release/test/w1zsMenu-test-2026-10-31-weapon-upgrades.zip` (1.2.0 + Weapon Upgrades),

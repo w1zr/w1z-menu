@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.4.0 — 2026-11-01
+
+**Playable Ellie fixes**, ported from Playable Ellie (WORKING) 1.1 and tested in
+game (Extras > Skins as Ellie no longer crashes).
+
+### Fixed (from Playable Ellie (WORKING) 1.1)
+
+- **Ellie's body or arms invisible** on some PCs: with Ellie's Outfit 0 she wears
+  the outfit the chapter's own Ellie wears (always loaded); a fixed outfit also
+  loads its body parts. Her look stays hers when the game re-reads it.
+- **Invisible companion Joel**: the companion wears the outfit Joel wears in
+  that chapter.
+- **Extras > Skins** while playing as Ellie: no crash, Ellie in the previews.
+- Joel's no-backpack outfit after a cutscene gives Ellie her matching one.
+- Swap Now no longer waits for the water-wading package that never loads, and
+  is ignored while a swap's checkpoint restart is still running.
+
+### Added
+
+- **Character > Bow On Ellie's Back** (on by default): Joel's bow uses Ellie's
+  bow settings, so it sits vertically on her back.
+
 ## 1.3.0 — 2026-10-31
 
 ### Added

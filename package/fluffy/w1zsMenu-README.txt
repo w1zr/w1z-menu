@@ -1,4 +1,4 @@
-w1z's menu v1.3.0 - in-game mod menu for The Last of Us Part I (PC)
+w1z's menu v1.4.0 - in-game mod menu for The Last of Us Part I (PC)
 ====================================================================
 
 Open / close:  Insert or F9  (controller: L3 + R3)
@@ -25,7 +25,7 @@ Pages
   Weapons/Items   Infinite Ammo, No Reload, infinity sign on the HUD,
                   Infinite Weapon Health, Disable Weapon Sway,
                   Disable Auto Reload, Disable Auto Holster, Drop All Weapons,
-                  Weapon Upgrades (new in 1.3.0: add one upgrade to a gun,
+                  Weapon Upgrades (add one upgrade to a gun,
                   e.g. a scope on the hunting rifle),
                   Give Joel / Ellie / Melee / Items,
                   Infinite Crafting, Infinite Craftables

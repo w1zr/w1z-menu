@@ -63,6 +63,7 @@ features::Feature* g_giveWeapons = nullptr;
 features::Feature* g_giveRecipes = nullptr;
 features::Feature* g_swapNow = nullptr;
 features::Feature* g_joelBuddy = nullptr;
+features::Feature* g_bowOnBack = nullptr;
 
 // Character id -> name, for every Joel / Ellie player character the menu knows.
 std::map<uint64_t, std::string> g_names;
@@ -85,6 +86,30 @@ std::atomic<int> g_spawns{0};
 // The thread inside the core player spawn (0 = none), and look log lines since it.
 std::atomic<DWORD> g_playerSpawnThread{0};
 std::atomic<int> g_lookLogs{0};
+// From Playable Ellie (WORKING) 1.1 (tested by its players, 2026-11-01):
+// The thread that runs player spawns (the companion spawns there too).
+std::atomic<DWORD> g_spawnThread{0};
+// The look given to the player at the last swap to Ellie (0 = none). The game
+// re-reads the player's look on a worker thread after the spawn (more often on
+// many-core CPUs: her body went invisible); that look stays the player's.
+std::atomic<uint64_t> g_playerLook{0};
+std::atomic<int> g_playerLookOther{0};
+const uint8_t* g_skinLookReturn = nullptr;  // the Skins menu's look call: never swapped
+const uint8_t* g_levelLookReturn = nullptr; // the level-load look registration: never swapped
+uint64_t g_ellieBase = 0; // t1x-ellie, Ellie without an outfit number (the Skins menu's preview)
+// Ellie's Outfit 0 dresses her in the outfit the chapter's own Ellie (the
+// companion) wears: the level always loads that one. Matching Joel's outfit
+// number instead only works when the game streams the other outfit in fast
+// enough (on a player's laptop her torso and arms stayed invisible). Known
+// pairs are listed; others are learned from the companion's look in the first
+// seconds after a spawn and used from the next spawn (no automatic restart).
+std::map<uint64_t, uint64_t> g_chapterOutfit; // Joel's look -> the chapter Ellie's look (game thread)
+std::atomic<uint64_t> g_spawnJoelLook{0};      // the Joel look of the last swapped spawn
+std::atomic<uint64_t> g_spawnTick{0};
+std::atomic<uint64_t> g_seenCompanionEllie{0}; // an Ellie look resolved for someone else after that spawn
+// Frames since Swap Now restarted the checkpoint; -1 = none. Swap Now is
+// ignored meanwhile (a second restart during the first one hung the game).
+std::atomic<int> g_restarting{-1};
 
 // ------------------------------------------------------- research trace
 // Logs the first calls of every function in the backpack / crafting code and
@@ -129,8 +154,10 @@ int Closest(const int (&list)[N], int n) {
 
 void BuildMaps() {
     using namespace engine;
+    g_chapterOutfit[H("t1x-joel-costume-02")] = H("t1x-ellie-costume-01"); // Pittsburgh (Playable Ellie logs)
     g_names[H(kJoel)] = kJoel;
     g_names[H(kEllie)] = kEllie;
+    g_ellieBase = H(kEllie);
     g_toEllie[H(kJoel)] = H(kEllie);
     g_toJoel[H(kEllie)] = H(kJoel);
     for (int n : kJoelOutfits) {
@@ -162,6 +189,20 @@ std::string NameOf(uint64_t id) {
     return hex;
 }
 
+// The chapter's Ellie outfit for Joel's look, or 0. Joel's no-backpack variant
+// (after some cutscenes) counts as the same outfit: Ellie gets her matching
+// no-backpack variant when there is one.
+uint64_t ChapterEllie(uint64_t joel) {
+    auto ch = g_chapterOutfit.find(joel);
+    if (ch != g_chapterOutfit.end()) return ch->second;
+    const std::string name = NameOf(joel), nb = "-no-backpack";
+    if (name.size() <= nb.size() || name.compare(name.size() - nb.size(), nb.size(), nb) != 0) return 0;
+    ch = g_chapterOutfit.find(H(name.substr(0, name.size() - nb.size())));
+    if (ch == g_chapterOutfit.end()) return 0;
+    const uint64_t ellieNb = H(NameOf(ch->second) + nb);
+    return g_names.count(ellieNb) ? ellieNb : ch->second;
+}
+
 // Every player spawn passes through here with the character to spawn.
 void* __fastcall HkCore(void* a, void* b, void* c, void* d, uint64_t id, void* f) {
     uint64_t use = id;
@@ -170,6 +211,10 @@ void* __fastcall HkCore(void* a, void* b, void* c, void* d, uint64_t id, void* f
         if (it != g_toEllie.end()) {
             const int pick = g_outfit->value;
             use = (pick >= 1 && pick <= static_cast<int>(g_ellieList.size())) ? H(g_ellieList[pick - 1]) : it->second;
+            if (pick == 0) {
+                const uint64_t ch = ChapterEllie(id);
+                if (ch) use = ch;
+            }
         }
     } else if (g_asJoel->on) {
         auto it = g_toJoel.find(id);
@@ -182,6 +227,13 @@ void* __fastcall HkCore(void* a, void* b, void* c, void* d, uint64_t id, void* f
     ++g_traceEpoch; // the research trace logs each function again after every spawn
     ++g_ovlEpoch;
     g_lookLogs = 0;
+    g_playerLook = g_swappedTo == 1 ? use : 0;
+    g_playerLookOther = 0;
+    g_spawnJoelLook = g_swappedTo == 1 ? id : 0;
+    g_seenCompanionEllie = 0;
+    g_spawnTick = GetTickCount64();
+    g_restarting = -1;
+    g_spawnThread = GetCurrentThreadId();
     g_playerSpawnThread = GetCurrentThreadId(); // looks resolved inside are the player's
     void* r = oCore(a, b, c, d, use, f);
     g_playerSpawnThread = 0;
@@ -200,20 +252,57 @@ const uint8_t* g_imageBase = nullptr;
 
 bool JoelBuddyActive() { return g_joelBuddy && g_joelBuddy->on && (g_asEllie->on || g_swappedTo == 1); }
 
+// Joel's look for the companion: the outfit Joel wears in this chapter (the one
+// the player spawn started from, which the level loads), not the one with the
+// matching number (in Pittsburgh that one never streamed in on a player's
+// laptop: an invisible companion). The no-backpack variant is kept when both
+// have one.
+uint64_t ChapterJoel(uint64_t ellieLook, uint64_t byNumber) {
+    const uint64_t joel = g_spawnJoelLook;
+    if (!joel) return byNumber;
+    const std::string name = NameOf(ellieLook), joelName = NameOf(joel);
+    const std::string nb = "-no-backpack";
+    const bool ellieNb = name.size() > nb.size() && name.compare(name.size() - nb.size(), nb.size(), nb) == 0;
+    const bool joelNb = joelName.size() > nb.size() && joelName.compare(joelName.size() - nb.size(), nb.size(), nb) == 0;
+    if (ellieNb == joelNb) return joel;
+    const std::string other = ellieNb ? joelName + nb : joelName.substr(0, joelName.size() - nb.size());
+    return g_names.count(H(other)) ? H(other) : joel;
+}
+
 void* __fastcall HkResolveLook(void* out, uint64_t look, void* c, void* d) {
     if (g_names.count(look)) {
-        const bool player = g_playerSpawnThread == GetCurrentThreadId();
+        const auto caller = reinterpret_cast<const uint8_t*>(_ReturnAddress());
+        const bool spawnThread = g_playerSpawnThread == GetCurrentThreadId();
+        // The player's outfit asked for again on a worker thread is the player's.
+        // Asked for on the spawn thread outside the spawn, it is the companion's.
+        const bool player = spawnThread || (look == g_playerLook && GetCurrentThreadId() != g_spawnThread);
+        if (player && !spawnThread && g_playerLookOther++ < 20)
+            logx::Write("look: %s resolved outside the player spawn; kept as the player's (caller 0x%llX)", NameOf(look).c_str(),
+                        static_cast<unsigned long long>(caller - g_imageBase));
+        // The Skins menu's previews are left alone (turned into Joel they crashed
+        // it); the same call right after a spawn dresses the companion, so that
+        // one is still swapped.
+        const bool skinCall = g_skinLookReturn && caller == g_skinLookReturn;
+        const bool skinMenu = skinCall && GetTickCount64() - g_spawnTick > 3000;
+        // Looks registered while a level loads, and the base look t1x-ellie (no
+        // outfit number, the Skins menu's preview), are never swapped either.
+        const bool levelLoad = g_levelLookReturn && caller == g_levelLookReturn;
+        const bool baseLook = look == g_ellieBase;
+        const bool other = !player && !skinMenu && !levelLoad && !baseLook;
+        if (other && g_spawnJoelLook && g_toJoel.count(look) && GetTickCount64() - g_spawnTick < 5000) {
+            uint64_t none = 0;
+            g_seenCompanionEllie.compare_exchange_strong(none, look);
+        }
         uint64_t use = look;
-        if (!player && JoelBuddyActive()) {
+        if (other && JoelBuddyActive()) {
             auto it = g_toJoel.find(look);
-            if (it != g_toJoel.end()) use = it->second;
+            if (it != g_toJoel.end()) use = ChapterJoel(look, it->second);
         }
-        if (g_lookLogs++ < 200) {
-            const auto caller = reinterpret_cast<const uint8_t*>(_ReturnAddress()) - g_imageBase;
+        if (g_lookLogs++ < 200)
             logx::Write("look: %s%s%s (caller 0x%llX%s)", NameOf(look).c_str(), use != look ? " -> " : "",
-                        use != look ? NameOf(use).c_str() : "", static_cast<unsigned long long>(caller),
-                        player ? ", player spawn" : "");
-        }
+                        use != look ? NameOf(use).c_str() : "", static_cast<unsigned long long>(caller - g_imageBase),
+                        spawnThread ? ", player spawn" : player ? ", player's look" : skinMenu ? ", Skins menu: left alone"
+                        : levelLoad ? ", level load: left alone" : baseLook ? ", base look: left alone" : "");
         look = use;
     }
     return oResolveLook(out, look, c, d);
@@ -238,6 +327,24 @@ void SetUpEllie() {
 // Each player's packages that the game actually has (see engine_defs.h).
 std::vector<const char*> g_elliePackages, g_joelPackages;
 std::vector<const char*> g_ellieJoelBuddyPackages; // Ellie's plus Joel's companion packages
+// Ellie's outfits are made of parts (ellie-costume-NN-torso, -legs, bandages)
+// that no level set lists; the look system streams them in when she puts the
+// outfit on, which in Joel's chapters doesn't always happen in time (a player
+// with a fixed outfit: arms, then everything but her head missing). With a
+// fixed Ellie's Outfit, the patch also loads that outfit's parts and the swap
+// waits for them.
+constexpr const char* kOutfitParts[] = {"torso", "torso-no-backpack", "legs", "bandage-bicep",
+                                        "bandage-forearm", "bandages-bicep", "bandages-forearm"};
+std::vector<std::vector<std::string>> g_outfitParts; // per Ellie's Outfit 1..n (index 0 unused)
+std::vector<const char*> g_needed;                    // scratch for NeededPackages()
+// Never waited for: not in Ellie's set in Joel's chapters (50 of 51 in every test).
+constexpr const char* kOptionalPackages[] = {"anim-ellie-player-mm-wade"};
+
+const std::vector<std::string>& OutfitParts() {
+    static const std::vector<std::string> none;
+    const int pick = g_outfit ? g_outfit->value.load() : 0;
+    return pick >= 1 && pick < static_cast<int>(g_outfitParts.size()) ? g_outfitParts[pick] : none;
+}
 
 // Keeps the names listed in the game's actor97.txt; false if it can't be read.
 template <size_t N>
@@ -280,6 +387,13 @@ bool LoadPackageLists() {
     const bool ok = FilterPackages(engine::kEllieOnlyPackages, actors, g_elliePackages, "Ellie") &&
                     FilterPackages(engine::kJoelOnlyPackages, actors, g_joelPackages, "Joel");
     g_ellieJoelBuddyPackages.insert(g_ellieJoelBuddyPackages.begin(), g_elliePackages.begin(), g_elliePackages.end());
+    g_outfitParts.assign(std::size(engine::kEllieOutfits) + 1, {});
+    for (size_t i = 0; i < std::size(engine::kEllieOutfits); ++i)
+        for (const char* part : kOutfitParts) {
+            char name[64];
+            std::snprintf(name, sizeof name, "ellie-costume-%02d-%s", engine::kEllieOutfits[i], part);
+            if (std::find(actors.begin(), actors.end(), name) != actors.end()) g_outfitParts[i + 1].push_back(name);
+        }
     logx::Write("character: %zu Ellie / %zu Joel player packages available (%zu actors listed)", g_elliePackages.size(),
                 g_joelPackages.size(), actors.size());
     return ok;
@@ -288,20 +402,31 @@ bool LoadPackageLists() {
 // Packages the chosen player needs that the chapter does not load, or none.
 const std::vector<const char*>* NeededPackages() {
     if (!g_loaded) return nullptr;
-    if (g_asEllie->on) return g_joelBuddy->on && g_joelBuddy->available ? &g_ellieJoelBuddyPackages : &g_elliePackages;
+    if (g_asEllie->on) {
+        g_needed = g_joelBuddy->on && g_joelBuddy->available ? g_ellieJoelBuddyPackages : g_elliePackages;
+        for (const auto& part : OutfitParts()) g_needed.push_back(part.c_str());
+        return &g_needed;
+    }
     if (g_asJoel->on) return &g_joelPackages;
     return nullptr;
 }
 
-// Game thread only. How many of the needed packages are fully loaded.
-int LoadedCount(size_t& total) {
+// Game thread only. How many of the needed packages are fully loaded, and
+// (if asked) how many of the ones the swap waits for are still missing.
+int LoadedCount(size_t& total, int* requiredMissing = nullptr) {
     const auto* list = NeededPackages();
     void* mgr = g_packageMgr ? *g_packageMgr : nullptr;
     total = list ? list->size() : 0;
+    if (requiredMissing) *requiredMissing = static_cast<int>(total);
     if (!list || !mgr) return 0;
-    int loaded = 0;
-    for (const char* name : *list)
+    int loaded = 0, missing = 0;
+    for (const char* name : *list) {
         if (g_loaded(mgr, dscan::Fnv1a64(name))) ++loaded;
+        else if (std::none_of(std::begin(kOptionalPackages), std::end(kOptionalPackages),
+                              [name](const char* o) { return std::strcmp(o, name) == 0; }))
+            ++missing;
+    }
+    if (requiredMissing) *requiredMissing = missing;
     return loaded;
 }
 
@@ -426,6 +551,8 @@ void ApplyPatches(std::vector<SetPatch>& patches) {
             add.insert(add.end(), std::begin(engine::kJoelBuddySets), std::end(engine::kJoelBuddySets));
             actors.insert(actors.end(), std::begin(engine::kJoelBuddyPackages), std::end(engine::kJoelBuddyPackages));
         }
+        if (p.joelBuddy) // the Ellie patches: a fixed outfit's parts too
+            for (const auto& part : OutfitParts()) actors.push_back(part.c_str());
         p.refs.clear();
         p.refs.reserve(add.size());
         for (const char* s : add) p.refs.push_back({dscan::Fnv1a64(s), 0});
@@ -549,21 +676,68 @@ void SyncCraftFlag(bool ellie) {
 }
 bool g_9mmOverlayOff = false;
 
+// Bow on her back (Playable Ellie 1.1, tested): while Ellie plays, Joel's bow
+// record gets Ellie's bow settings at +0x158, +0x180 (holster) and +0x198, so
+// it sits vertically on her back instead of across her backpack. Her bow's
+// overlay table is NOT used (that made her crouch and hid the bow when aiming).
+constexpr uint64_t kProcessWeaponBow = 0x63CB48375E6E92D6;
+constexpr uint64_t kJoelBowHolster = 0x5062ADC8205A58B9;  // s_bow-slot1-holster
+constexpr uint64_t kEllieBowHolster = 0xAB0ABC3E74FAA491; // s_ellie-bow-slot1-holster
+constexpr uint32_t kBowFields[3] = {0x180, 0x158, 0x198};
+uint64_t g_joelBow = 0, g_joelBowOrig[3] = {}, g_ellieBowVals[3] = {};
+bool g_bowApplied = false;
+
+// The weapon record whose process-weapon field is at `type`, if its name is
+// `name` and its holster block names `holster`; 0 otherwise.
+uint64_t BowRecord(uint64_t type, const char* name, uint64_t holster) {
+    uint64_t namePtr = 0, block = 0, value = 0;
+    char str[16] = {};
+    const size_t len = std::strlen(name) + 1;
+    if (len > sizeof str || !ReadMem(type - 8, &namePtr, 8) || !ReadMem(namePtr, str, len) ||
+        std::memcmp(str, name, len) != 0 || !ReadMem(type - 0x38 + 0x180, &block, 8) || !block ||
+        !ReadMem(block + 0x40, &value, 8) || value != holster)
+        return 0;
+    return type - 0x38;
+}
+
+// Game thread only.
+void SyncBow(bool ellie) {
+    const bool want = ellie && g_bowOnBack && g_bowOnBack->on;
+    if (want == g_bowApplied || !g_joelBow) return;
+    auto* rec = reinterpret_cast<volatile uint64_t*>(g_joelBow);
+    for (int f = 0; f < 3; ++f)
+        if (rec[kBowFields[f] / 8] != (g_bowApplied ? g_ellieBowVals[f] : g_joelBowOrig[f])) {
+            logx::Write("character: bow settings changed; left alone");
+            g_joelBow = 0;
+            return;
+        }
+    for (int f = 0; f < 3; ++f) rec[kBowFields[f] / 8] = want ? g_ellieBowVals[f] : g_joelBowOrig[f];
+    g_bowApplied = want;
+    logx::Write("character: Joel's bow uses %s", want ? "Ellie's bow settings (on her back)" : "its own settings");
+}
+
 void FindGunOverlay() {
-    uint64_t found = 0, table9 = 0, revolver = 0;
+    uint64_t found = 0, table9 = 0, revolver = 0, joelBow = 0, ellieBow = 0;
     std::vector<uint8_t> buf(1 << 20);
     MEMORY_BASIC_INFORMATION mbi{};
     const DWORD start = GetTickCount();
-    for (uint64_t a = 0x10000; !(found && revolver) && VirtualQuery(reinterpret_cast<void*>(a), &mbi, sizeof mbi);
+    auto done = [&] { return found && revolver && joelBow && ellieBow; };
+    for (uint64_t a = 0x10000; !done() && VirtualQuery(reinterpret_cast<void*>(a), &mbi, sizeof mbi);
          a = reinterpret_cast<uint64_t>(mbi.BaseAddress) + mbi.RegionSize) {
         if (mbi.State != MEM_COMMIT || mbi.Type != MEM_PRIVATE || (mbi.Protect & 0xFF) != PAGE_READWRITE) continue;
         const uint64_t base = reinterpret_cast<uint64_t>(mbi.BaseAddress), end = base + mbi.RegionSize;
-        for (uint64_t at = base; at + 16 <= end && !(found && revolver); at += buf.size() - 16) {
+        for (uint64_t at = base; at + 16 <= end && !done(); at += buf.size() - 16) {
             const size_t n = static_cast<size_t>((std::min<uint64_t>)(buf.size(), end - at));
             if (!ReadMem(at, buf.data(), n)) break;
             for (size_t i = 0; i + 16 <= n; i += 8) {
                 const uint64_t table = at + i;
-                uint64_t key2 = 0, ref[2] = {};
+                uint64_t key2 = 0, ref[2] = {}, word = 0;
+                std::memcpy(&word, buf.data() + i, 8);
+                if (word == kProcessWeaponBow && (!joelBow || !ellieBow)) {
+                    if (!joelBow) joelBow = BowRecord(table, "t1x-bow", kJoelBowHolster);
+                    if (!ellieBow) ellieBow = BowRecord(table, "t1x-bow-ellie", kEllieBowHolster);
+                    continue;
+                }
                 if (!found && std::memcmp(buf.data() + i, k9mmOverlayFirst, 16) == 0 && ReadMem(table + 0x180, &key2, 8) &&
                     key2 == kGripAim && ReadMem(table - 0xE8, ref, sizeof ref) && ref[0] == table &&
                     ref[1] == k9mmOverlayCount) {
@@ -578,10 +752,16 @@ void FindGunOverlay() {
             if (n < buf.size()) break;
         }
     }
-    logx::Write("character: 9mm Ellie overlay %s, revolver overlay %s (%lu ms)", found ? "found" : "NOT found",
-                revolver ? "found" : "NOT found", GetTickCount() - start);
-    engine::RunOnGameThread([found, table9, revolver] {
+    logx::Write("character: 9mm Ellie overlay %s, revolver overlay %s, bow records %s (%lu ms)", found ? "found" : "NOT found",
+                revolver ? "found" : "NOT found", joelBow && ellieBow ? "found" : "NOT found", GetTickCount() - start);
+    engine::RunOnGameThread([found, table9, revolver, joelBow, ellieBow] {
         if (!g_9mmOverlayOff) g_9mmOverlayCount = found, g_9mmTable = table9, g_revolverTable = revolver;
+        if (!g_joelBow && !g_bowApplied && joelBow && ellieBow) {
+            for (int f = 0; f < 3; ++f)
+                if (!ReadMem(joelBow + kBowFields[f], &g_joelBowOrig[f], 8) || !ReadMem(ellieBow + kBowFields[f], &g_ellieBowVals[f], 8))
+                    return;
+            g_joelBow = joelBow;
+        }
     });
 }
 
@@ -616,6 +796,7 @@ void SyncGunOverlay(bool ellie) {
 // would freeze or crash the game); it is removed after the next normal spawn.
 void SyncPatches() {
     SyncGunOverlay(g_asEllie->on || g_swappedTo == 1);
+    SyncBow(g_asEllie->on || g_swappedTo == 1);
     SyncCraftFlag(g_asEllie->on || g_swappedTo == 1);
     if (!g_setsFound) return;
     if (g_asEllie->on) ApplyPatches(g_elliePatches);
@@ -665,6 +846,7 @@ void PrepareSwap() {
 void DoRestart() {
     logx::Write("swap: restarting checkpoint (%s)", g_asEllie->on ? "Ellie" : g_asJoel->on ? "Joel in Ellie's chapters" : "story characters");
     features::Notify("Swapping...");
+    g_restarting = 0;
     g_restart(false, false);
 }
 
@@ -837,8 +1019,22 @@ void LogCraftChecks() {
     logx::Write("%s", out);
 }
 
+// A chapter outfit learned from the companion's look after a swapped spawn
+// (Ellie's Outfit 0): used from the next spawn, no automatic restart.
+void CheckChapterOutfit() {
+    const uint64_t seen = g_seenCompanionEllie, joel = g_spawnJoelLook, mine = g_playerLook;
+    if (!seen || !joel || !g_outfit || g_outfit->value != 0 || g_swappedTo != 1) return;
+    g_seenCompanionEllie = 0;
+    if (seen == mine || ChapterEllie(joel)) return;
+    g_chapterOutfit[joel] = seen;
+    logx::Write("outfit: this chapter's Ellie wears %s (Joel: %s); the player wore %s; from the next spawn on, she wears that one",
+                NameOf(seen).c_str(), NameOf(joel).c_str(), NameOf(mine).c_str());
+}
+
 void Tick() {
     CheckSwappedSpawn();
+    CheckChapterOutfit();
+    if (g_restarting >= 0 && ++g_restarting > 20 * 60) g_restarting = -1; // no spawn after ~20 s
     if (g_ovlOn) { // research: aim markers
         static bool aim = false;
         const bool now = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
@@ -864,10 +1060,11 @@ void Tick() {
     if (g_swapWait == 0) lastLoaded = -1;
     if (g_swapWait >= 0 && engine::PlayerPresent() && ++g_swapWait % 30 == 0) {
         size_t total = 0;
-        const int loaded = LoadedCount(total);
+        int missing = 0;
+        const int loaded = LoadedCount(total, &missing);
         if (loaded != lastLoaded) lastLoaded = loaded, stableSince = g_swapWait;
         const bool settled = g_swapWait - stableSince >= 300 && loaded + 4 >= static_cast<int>(total);
-        if (loaded == static_cast<int>(total) || settled) {
+        if (missing == 0 || settled) {
             logx::Write("swap: %d of %zu player packages loaded after %d frames", loaded, total, g_swapWait);
             LogMissing();
             g_swapWait = -1;
@@ -1145,7 +1342,8 @@ void Register() {
     if (!settings::GetBool("Menu", "RememberSwap", false)) g_asEllie->on = g_asJoel->on = false;
     if (g_asEllie->on && g_asJoel->on) g_asJoel->on = false;
     g_outfit = &features::Add("EllieOutfit", "Engine", "Ellie's Outfit",
-                              "0 = match the chapter. 1-11 = a fixed outfit (01-08, 11, 13, 15). Left / Right to change; "
+                              "0 = the outfit this chapter's own Ellie wears (always loaded, so her whole body shows). 1-11 = a "
+                              "fixed outfit (01-08, 11, 13, 15); its parts load with the swap. Left / Right to change; "
                               "applies on the next swap.",
                               Kind::Number, 0);
     g_outfit->minValue = 0;
@@ -1164,6 +1362,14 @@ void Register() {
                                  "with Swap Now or at your next checkpoint. Turn off to keep Ellie as the companion.",
                                  Kind::Toggle, 1);
     g_joelBuddy->alwaysSave = true;
+    g_bowOnBack = &features::Add("BowOnBack", "Engine", "Bow On Ellie's Back",
+                                 "While you play as Ellie, Joel's bow uses Ellie's own bow settings, so it sits "
+                                 "vertically on her back instead of across her backpack.",
+                                 Kind::Toggle, 1);
+    g_bowOnBack->alwaysSave = true;
+    g_bowOnBack->onToggle = [](bool) {
+        if (engine::GameLoopHooked()) engine::RunOnGameThread(&SyncPatches);
+    };
     // The companion's packages are part of the swap's level-set patch: rebuild it.
     g_joelBuddy->onToggle = [](bool) {
         if (!engine::GameLoopHooked()) return;
@@ -1240,6 +1446,17 @@ void Init() {
         MH_EnableHook(lookFn) == MH_OK) {
         logx::Write("character: look resolver RVA 0x%zX hooked", look[0]);
         features::MarkAvailable(*g_joelBuddy);
+        // The Skins menu's and the level load's look calls (left alone by the hook).
+        auto callReturn = [&](const char* pattern, size_t callAt, size_t retAt, const char* what) -> const uint8_t* {
+            const auto m = scan::FindAll(base, textEnd, scan::Parse(pattern));
+            int32_t rel = 0;
+            if (m.size() == 1) std::memcpy(&rel, base + m[0] + callAt + 1, 4);
+            if (m.size() == 1 && m[0] + callAt + 5 + rel == look[0]) return base + m[0] + retAt;
+            logx::Write("character: %s not recognised (%zu matches)", what, m.size());
+            return nullptr;
+        };
+        g_skinLookReturn = callReturn(engine::kSkinLookCall, engine::kSkinLookCallAt, engine::kSkinLookReturn, "Skins menu look call");
+        g_levelLookReturn = callReturn(engine::kLevelLookCall, engine::kLevelLookCallAt, engine::kLevelLookReturn, "level-load look call");
     } else {
         logx::Write("character: look resolver not found (%zu matches)", look.size());
         features::MarkUnavailable(*g_joelBuddy, "The game's look code was not recognised in this version.");
@@ -1305,6 +1522,10 @@ void Init() {
                 return;
             }
             if (g_swapWait >= 0) return; // already waiting for the packages
+            if (g_restarting >= 0) {     // a second restart during the first one hung the game
+                features::Notify("Still swapping - one moment");
+                return;
+            }
             SyncPatches();
             // Stream in the new player's animations first: a checkpoint restart
             // never loads them, and without them the player cannot move.

@@ -213,6 +213,22 @@ inline const char* kRebuildWantsPrologue = "48 8B C4 48 89 58 10 48 89 70 18 48 
 // remap list and before its look2 data is read. The companion's look comes
 // from its spawner, so changing the hash here gives the same buddy (its AI,
 // scripts and dialogue) Joel's body.
+// SkinManager::Skin (Extras > Skins and its previews) asks the look resolver
+// for each skin here; the companion swap leaves those alone (an Ellie skin
+// preview turned into Joel crashed the game). Call at +0x3E, returns at +0x43.
+// From Playable Ellie (WORKING) 1.1.
+inline const char* kSkinLookCall =
+    "48 89 5C 24 18 55 56 57 41 56 41 57 48 8B EC 48 81 EC 80 00 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 F0 "
+    "C5 F9 EF C0 48 8B F2 4C 8B F1 48 8B 51 08 48 8D 4D D0 C5 FC 11 45 D0 C5 F8 77 E8 ?? ?? ?? ?? "
+    "48 BF 25 23 22 84 E4 9C F2 CB";
+constexpr size_t kSkinLookCallAt = 0x3E, kSkinLookReturn = 0x43;
+// While a level loads, the game registers the looks it may need through the
+// look resolver; turned into Joel there, the Skins menu's Ellie previews showed
+// Joel all session, so these are left alone too. Call at +0x2E, returns at +0x33.
+inline const char* kLevelLookCall =
+    "48 BB 25 23 22 84 E4 9C F2 CB 4D 8B E5 4C 8B 2E 4D 39 75 08 0F 84 ?? ?? ?? ?? 49 8B 55 08 48 8D 4D C0 "
+    "C5 F9 EF C0 C5 FC 11 45 C0 C5 F8 77 E8 ?? ?? ?? ?? 48 8B D3 48 8D 0D";
+constexpr size_t kLevelLookCallAt = 0x2E, kLevelLookReturn = 0x33;
 inline const char* kLookResolve =
     "48 89 5C 24 10 48 89 6C 24 18 56 57 41 54 41 56 41 57 48 83 EC 70 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 60 "
     "48 8B F9 48 8D 4C 24 20 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? 4C 8D 4C 24 50 45 33 FF 48 8D 54 24 48 48 8B 18 4C "
